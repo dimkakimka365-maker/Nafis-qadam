@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Nunito', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Accessible focus ring and smooth button feedback */
+.focus-accessible:focus-visible {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* Custom bouncing star and pulsing effects */
+@keyframes gentle-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes slow-pan {
+  0% { transform: scale(1.06) translate(0, 0); }
+  50% { transform: scale(1.10) translate(-1.2%, -1%); }
+  100% { transform: scale(1.06) translate(0, 0); }
+}
+
+.animate-bg-pan {
+  animation: slow-pan 24s ease-in-out infinite;
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2.5s ease-in-out infinite;
+}

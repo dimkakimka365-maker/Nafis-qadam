@@ -1,0 +1,6 @@
+{
+  "name": "Nafis Qadam - Maxsus Aqliy Rivojlanish va Ta'lim Platformasi",
+  "description": "Aqliy rivojlanishida o'ziga xosligi bo'lgan bolalar va insonlar uchun qiziqarli, sodda aqliy darslar, interaktiv mantiqiy o'yinlar, testlar va ovozli mashg'ulotlar platformasi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
