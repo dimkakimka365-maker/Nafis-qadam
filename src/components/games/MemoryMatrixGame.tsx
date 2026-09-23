@@ -2,11 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Volume2, RotateCcw, ArrowRight, Trophy, Sparkles, Star, Lightbulb, Play } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { soundFx, speakUzbek } from '../../utils/audio';
+import { UserProfile } from '../../types';
 import candyBg from '../../assets/images/fairytale_candy_castle_1788798177338.jpg';
 
 interface MemoryMatrixGameProps {
   onEarnStars: (stars: number) => void;
   onBack?: () => void;
+  userProfile?: UserProfile | null;
+  onAwardGift?: () => void;
 }
 
 interface MatrixLevelConfig {
@@ -30,15 +33,43 @@ const MATRIX_LEVELS: MatrixLevelConfig[] = [
   { level: 10, gridSize: 5, targetCount: 6, memorizeDurationMs: 2700, label: 'Chempion (5x5)' },
 ];
 
+const getMatrixLevelConfig = (idx: number): MatrixLevelConfig => {
+  if (idx < MATRIX_LEVELS.length) {
+    return MATRIX_LEVELS[idx];
+  }
+  const extra = idx - MATRIX_LEVELS.length + 1;
+  const targets = Math.min(6 + Math.floor(extra / 2), 12);
+  return {
+    level: idx + 1,
+    gridSize: 5,
+    targetCount: targets,
+    memorizeDurationMs: Math.max(2800 - extra * 50, 1600),
+    label: `Cheksiz Zukko (${idx + 1}-bosqich, 5x5)`,
+  };
+};
+
 type GamePhase = 'idle' | 'memorize' | 'recall' | 'success' | 'fail';
 
-export const MemoryMatrixGame: React.FC<MemoryMatrixGameProps> = ({ onEarnStars, onBack }) => {
-  const [currentLevelIdx, setCurrentLevelIdx] = useState<number>(0);
+export const MemoryMatrixGame: React.FC<MemoryMatrixGameProps> = ({
+  onEarnStars,
+  onBack,
+  userProfile,
+  onAwardGift,
+}) => {
+  const getInitialLevelIdx = (): number => {
+    if (!userProfile?.age) return 0;
+    if (userProfile.age <= 4) return 0; // 2x2
+    if (userProfile.age <= 6) return 2; // 3x3
+    return 5; // 4x4
+  };
+
+  const [currentLevelIdx, setCurrentLevelIdx] = useState<number>(() => getInitialLevelIdx());
   const [phase, setPhase] = useState<GamePhase>('idle');
   const [targetIndices, setTargetIndices] = useState<number[]>([]);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [wrongIndex, setWrongIndex] = useState<number | null>(null);
   const [score, setScore] = useState<number>(0);
+  const [autoAdvanceSec, setAutoAdvanceSec] = useState<number | null>(null);
   const [highestUnlocked, setHighestUnlocked] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('memory_matrix_highest');
@@ -49,7 +80,10 @@ export const MemoryMatrixGame: React.FC<MemoryMatrixGameProps> = ({ onEarnStars,
   });
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const config = MATRIX_LEVELS[currentLevelIdx] || MATRIX_LEVELS[0];
+  const autoTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const config = getMatrixLevelConfig(currentLevelIdx);
   const totalCells = config.gridSize * config.gridSize;
 
   // Generate random target indices for current level
@@ -101,10 +135,11 @@ export const MemoryMatrixGame: React.FC<MemoryMatrixGameProps> = ({ onEarnStars,
         setPhase('success');
         setScore((prev) => prev + 10 * config.level);
         onEarnStars(2);
+        onAwardGift?.();
 
         // Unlock next level
         const nextLvl = currentLevelIdx + 1;
-        if (nextLvl > highestUnlocked && nextLvl < MATRIX_LEVELS.length) {
+        if (nextLvl > highestUnlocked) {
           setHighestUnlocked(nextLvl);
           try {
             localStorage.setItem('memory_matrix_highest', nextLvl.toString());
@@ -114,6 +149,22 @@ export const MemoryMatrixGame: React.FC<MemoryMatrixGameProps> = ({ onEarnStars,
         }
 
         speakUzbek("Barakalla! To'g'ri topdingiz!");
+
+        // ⚡ AVTOMATIK KEYINGI QIYINROQ BOSQICHGA O'TISH
+        setAutoAdvanceSec(2);
+        let count = 2;
+        countdownIntervalRef.current = setInterval(() => {
+          count -= 1;
+          if (count >= 0) {
+            setAutoAdvanceSec(count);
+          } else {
+            if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+          }
+        }, 700);
+
+        autoTimerRef.current = setTimeout(() => {
+          handleNextLevel();
+        }, 1600);
       }
     } else {
       // Wrong cell clicked!
@@ -126,12 +177,12 @@ export const MemoryMatrixGame: React.FC<MemoryMatrixGameProps> = ({ onEarnStars,
 
   const handleNextLevel = () => {
     soundFx.playClick();
-    if (currentLevelIdx < MATRIX_LEVELS.length - 1) {
-      setCurrentLevelIdx((prev) => prev + 1);
-    } else {
-      // Reached the end, restart or stay
-      startNewRound(config);
-    }
+    if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setAutoAdvanceSec(null);
+
+    // Continuous progression - advances forever without ending!
+    setCurrentLevelIdx((prev) => prev + 1);
   };
 
   const handleRetryCurrent = () => {
@@ -187,6 +238,12 @@ export const MemoryMatrixGame: React.FC<MemoryMatrixGameProps> = ({ onEarnStars,
 
           {/* Badges on Top-Right */}
           <div className="flex items-center gap-2">
+            {userProfile && (
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#090d19]/90 border border-amber-400/40 text-amber-300 font-black text-xs shadow-md">
+                <span>{userProfile.avatar}</span>
+                <span>{userProfile.firstName} ({userProfile.age} yosh)</span>
+              </div>
+            )}
             <div className="px-3 py-1.5 rounded-xl bg-[#090d19]/90 border border-white/20 text-white font-black text-xs sm:text-sm shadow-md flex items-center gap-1">
               <span>🏆</span>
               <span className="text-sky-400 font-extrabold">{config.level}</span>
@@ -358,9 +415,13 @@ export const MemoryMatrixGame: React.FC<MemoryMatrixGameProps> = ({ onEarnStars,
                   className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 hover:from-amber-500 text-white font-black text-base flex items-center gap-2 shadow-xl ring-3 ring-amber-300 animate-pulse transition-transform active:scale-95 cursor-pointer"
                   title="Keyingisi"
                 >
-                  <span>Keyingisi</span>
+                  <span>Keyingi qiyinroq bosqich</span>
                   <ArrowRight className="w-6 h-6" />
-                  <Star className="w-5 h-5 fill-white" />
+                  {autoAdvanceSec !== null && autoAdvanceSec > 0 && (
+                    <span className="ml-1 px-2 py-0.5 rounded-full bg-white/25 text-xs font-black">
+                      {autoAdvanceSec}s
+                    </span>
+                  )}
                 </button>
               </>
             )}

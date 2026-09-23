@@ -6,6 +6,9 @@ export interface PictureCard {
   category: 'colors' | 'animals' | 'shapes' | 'numbers' | 'fruits';
   colorBg: string;
   borderColor: string;
+  cardBgHex?: string;
+  cardShadowHex?: string;
+  textShadowHex?: string;
   detailItems?: Array<{
     name: string;
     emoji: string;
@@ -23,7 +26,7 @@ export const PICTURE_CATEGORIES = [
 ];
 
 export const PICTURE_LESSONS: PictureCard[] = [
-  // RANGLAR
+  // RANGLAR (1-4)
   {
     id: 'c-red',
     name: 'Qizil',
@@ -32,6 +35,9 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'colors',
     colorBg: 'bg-rose-100/90 text-rose-800',
     borderColor: 'border-rose-400',
+    cardBgHex: '#FF5376',
+    cardShadowHex: '#D92348',
+    textShadowHex: '#8A0D26',
     detailItems: [
       { name: 'Olma', emoji: '🍎', voice: 'Qizil olma!' },
       { name: 'Qulupnay', emoji: '🍓', voice: 'Shirin qulupnay!' },
@@ -47,6 +53,9 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'colors',
     colorBg: 'bg-amber-100/90 text-amber-900',
     borderColor: 'border-amber-400',
+    cardBgHex: '#FFBE26',
+    cardShadowHex: '#D49206',
+    textShadowHex: '#8A5900',
     detailItems: [
       { name: 'Quyosh', emoji: '☀️', voice: 'Sariq quyosh!' },
       { name: 'Banan', emoji: '🍌', voice: 'Sariq banan!' },
@@ -62,6 +71,9 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'colors',
     colorBg: 'bg-emerald-100/90 text-emerald-900',
     borderColor: 'border-emerald-400',
+    cardBgHex: '#54D66E',
+    cardShadowHex: '#24A640',
+    textShadowHex: '#0F5E22',
     detailItems: [
       { name: 'Barg', emoji: '🍃', voice: 'Yashil barg!' },
       { name: 'Baqa', emoji: '🐸', voice: 'Yashil baqa: Vaq-vaq!' },
@@ -77,6 +89,9 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'colors',
     colorBg: 'bg-blue-100/90 text-blue-900',
     borderColor: 'border-blue-400',
+    cardBgHex: '#388DFF',
+    cardShadowHex: '#1764D1',
+    textShadowHex: '#0D3D8A',
     detailItems: [
       { name: 'Osmon', emoji: '🌤️', voice: 'Moviy osmon!' },
       { name: 'Suv', emoji: '💧', voice: 'Toza suv tomchisi!' },
@@ -85,15 +100,18 @@ export const PICTURE_LESSONS: PictureCard[] = [
     ],
   },
 
-  // HAYVONLAR
+  // HAYVONLAR (5-8)
   {
     id: 'a-cat',
     name: 'Mushukcha',
     emoji: '🐱',
     voice: 'Mushukcha: Miyov, miyov!',
     category: 'animals',
-    colorBg: 'bg-amber-100/90 text-amber-900',
-    borderColor: 'border-amber-400',
+    colorBg: 'bg-indigo-100/90 text-indigo-900',
+    borderColor: 'border-indigo-400',
+    cardBgHex: '#6366F1',
+    cardShadowHex: '#4338CA',
+    textShadowHex: '#312E81',
     detailItems: [
       { name: 'Miyov', emoji: '🐾', voice: 'Miyov-miyov!' },
       { name: 'Sut ichadi', emoji: '🥛', voice: 'Mushukcha sut ichadi!' },
@@ -105,8 +123,11 @@ export const PICTURE_LESSONS: PictureCard[] = [
     emoji: '🐶',
     voice: 'Kuchukcha: Vov, vov!',
     category: 'animals',
-    colorBg: 'bg-orange-100/90 text-orange-900',
-    borderColor: 'border-orange-400',
+    colorBg: 'bg-cyan-100/90 text-cyan-900',
+    borderColor: 'border-cyan-400',
+    cardBgHex: '#06B6D4',
+    cardShadowHex: '#0891B2',
+    textShadowHex: '#164E63',
     detailItems: [
       { name: 'Vov-vov', emoji: '🎾', voice: 'Vov-vov!' },
       { name: 'Do\'stimiz', emoji: '🦴', voice: 'Sodiq do\'stimiz!' },
@@ -118,8 +139,11 @@ export const PICTURE_LESSONS: PictureCard[] = [
     emoji: '🐮',
     voice: 'Sigir: Muuu!',
     category: 'animals',
-    colorBg: 'bg-emerald-100/90 text-emerald-900',
-    borderColor: 'border-emerald-400',
+    colorBg: 'bg-rose-100/90 text-rose-900',
+    borderColor: 'border-rose-400',
+    cardBgHex: '#F43F5E',
+    cardShadowHex: '#E11D48',
+    textShadowHex: '#881337',
     detailItems: [
       { name: 'Muuu', emoji: '🥛', voice: 'Muuu! Foydali sut beradi!' },
       { name: 'O\'t yeydi', emoji: '🌿', voice: 'Mazzali ko\'kat yeydi!' },
@@ -131,14 +155,79 @@ export const PICTURE_LESSONS: PictureCard[] = [
     emoji: '🐑',
     voice: 'Qo\'zichoq: Beee!',
     category: 'animals',
-    colorBg: 'bg-sky-100/90 text-sky-900',
-    borderColor: 'border-sky-400',
+    colorBg: 'bg-fuchsia-100/90 text-fuchsia-900',
+    borderColor: 'border-fuchsia-400',
+    cardBgHex: '#D946EF',
+    cardShadowHex: '#C026D3',
+    textShadowHex: '#701A75',
     detailItems: [
       { name: 'Beee', emoji: '☁️', voice: 'Beee! Paxtadek yumshoq!' },
     ],
   },
+  {
+    id: 'a-elephant',
+    name: 'Katta Fil',
+    emoji: '🐘',
+    voice: 'Katta filvoy! Uning uzun xartumi bor: Tuuu!',
+    category: 'animals',
+    colorBg: 'bg-purple-100/90 text-purple-900',
+    borderColor: 'border-purple-400',
+    cardBgHex: '#8B5CF6',
+    cardShadowHex: '#6D28D9',
+    textShadowHex: '#4C1D95',
+    detailItems: [
+      { name: 'Xartum', emoji: '💧', voice: 'Suv purkaydi!' },
+      { name: 'Kuchli', emoji: '🌿', voice: 'Kuchli va mehribon filvoy!' },
+    ],
+  },
+  {
+    id: 'a-lion',
+    name: 'Jasur Arslon',
+    emoji: '🦁',
+    voice: 'Arslon: Rrrr! O\'rmon podshosi!',
+    category: 'animals',
+    colorBg: 'bg-sky-100/90 text-sky-900',
+    borderColor: 'border-sky-400',
+    cardBgHex: '#0EA5E9',
+    cardShadowHex: '#0284C7',
+    textShadowHex: '#0369A1',
+    detailItems: [
+      { name: 'Rrrr', emoji: '👑', voice: 'Rrrr! Hayvonlar shohi!' },
+    ],
+  },
+  {
+    id: 'a-monkey',
+    name: 'Quvnoq Maymun',
+    emoji: '🐒',
+    voice: 'Maymuncha: U-a-a! Bananlarni yaxshi ko\'radi!',
+    category: 'animals',
+    colorBg: 'bg-emerald-100/90 text-emerald-900',
+    borderColor: 'border-emerald-400',
+    cardBgHex: '#10B981',
+    cardShadowHex: '#059669',
+    textShadowHex: '#064E3B',
+    detailItems: [
+      { name: 'Banan', emoji: '🍌', voice: 'Banan yeydi!' },
+      { name: 'Sakraydi', emoji: '🌴', voice: 'Daraxtdan daraxtga sakraydi!' },
+    ],
+  },
+  {
+    id: 'a-penguin',
+    name: 'Mitti Pingvin',
+    emoji: '🐧',
+    voice: 'Mitti pingvin! Muz ustida quvnoq sirpanadi!',
+    category: 'animals',
+    colorBg: 'bg-amber-100/90 text-amber-900',
+    borderColor: 'border-amber-400',
+    cardBgHex: '#F59E0B',
+    cardShadowHex: '#D97706',
+    textShadowHex: '#78350F',
+    detailItems: [
+      { name: 'Muzdek', emoji: '❄️', voice: 'Muz ustida quvnoq!' },
+    ],
+  },
 
-  // SHAKLLAR
+  // SHAKLLAR (9-12 + bonus)
   {
     id: 's-circle',
     name: 'Doira (Dumaloq)',
@@ -147,6 +236,9 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'shapes',
     colorBg: 'bg-indigo-100/90 text-indigo-900',
     borderColor: 'border-indigo-400',
+    cardBgHex: '#9784FF',
+    cardShadowHex: '#6650D9',
+    textShadowHex: '#3A2891',
     detailItems: [
       { name: 'Koptok', emoji: '⚽', voice: 'Dumaloq koptok!' },
       { name: 'Quyosh', emoji: '☀️', voice: 'Dumaloq quyosh!' },
@@ -161,6 +253,9 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'shapes',
     colorBg: 'bg-emerald-100/90 text-emerald-900',
     borderColor: 'border-emerald-400',
+    cardBgHex: '#40D498',
+    cardShadowHex: '#1EA66D',
+    textShadowHex: '#0D613E',
     detailItems: [
       { name: 'Quti', emoji: '🎁', voice: 'Kvadrat sovg\'a qutisi!' },
       { name: 'Deraza', emoji: '🪟', voice: 'Kvadrat deraza!' },
@@ -174,6 +269,9 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'shapes',
     colorBg: 'bg-rose-100/90 text-rose-900',
     borderColor: 'border-rose-400',
+    cardBgHex: '#FF9CBA',
+    cardShadowHex: '#D46383',
+    textShadowHex: '#7D1B36',
     detailItems: [
       { name: 'Pissa', emoji: '🍕', voice: 'Uchburchak pissa!' },
       { name: 'Chodir', emoji: '⛺', voice: 'Uchburchak chodir!' },
@@ -187,20 +285,56 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'shapes',
     colorBg: 'bg-amber-100/90 text-amber-900',
     borderColor: 'border-amber-400',
+    cardBgHex: '#FFB82E',
+    cardShadowHex: '#D18A08',
+    textShadowHex: '#784A00',
     detailItems: [
       { name: 'Yulduz', emoji: '🌟', voice: 'Osmondagi yulduz!' },
     ],
   },
+  {
+    id: 's-heart',
+    name: 'Yurakcha',
+    emoji: '💖',
+    voice: 'Sehrli yurakcha! Mehr va muhabbat timsoli!',
+    category: 'shapes',
+    colorBg: 'bg-rose-100/90 text-rose-900',
+    borderColor: 'border-rose-400',
+    cardBgHex: '#F43F5E',
+    cardShadowHex: '#BE123C',
+    textShadowHex: '#881337',
+    detailItems: [
+      { name: 'Mehr', emoji: '❤️', voice: 'Shirin mehr!' },
+    ],
+  },
+  {
+    id: 's-diamond',
+    name: 'Romb (Olmos)',
+    emoji: '🔷',
+    voice: 'Yaltiroq romb va qimmatbaho olmos shakli!',
+    category: 'shapes',
+    colorBg: 'bg-cyan-100/90 text-cyan-900',
+    borderColor: 'border-cyan-400',
+    cardBgHex: '#06B6D4',
+    cardShadowHex: '#0891B2',
+    textShadowHex: '#164E63',
+    detailItems: [
+      { name: 'Olmos', emoji: '💎', voice: 'Yaltiroq romb!' },
+    ],
+  },
 
-  // SONLAR
+  // SONLAR (1-10)
   {
     id: 'n-1',
     name: 'Bir (1)',
     emoji: '1️⃣',
     voice: 'Bir! Bitta quyosh!',
     category: 'numbers',
-    colorBg: 'bg-amber-100/90 text-amber-900',
-    borderColor: 'border-amber-400',
+    colorBg: 'bg-sky-100/90 text-sky-900',
+    borderColor: 'border-sky-400',
+    cardBgHex: '#0EA5E9',
+    cardShadowHex: '#0284C7',
+    textShadowHex: '#0C4A6E',
     detailItems: [
       { name: '1 Quyosh', emoji: '☀️', voice: 'Bitta quyosh!' },
     ],
@@ -211,8 +345,11 @@ export const PICTURE_LESSONS: PictureCard[] = [
     emoji: '2️⃣',
     voice: 'Ikki! Ikkita ko\'z!',
     category: 'numbers',
-    colorBg: 'bg-purple-100/90 text-purple-900',
-    borderColor: 'border-purple-400',
+    colorBg: 'bg-amber-100/90 text-amber-900',
+    borderColor: 'border-amber-400',
+    cardBgHex: '#F59E0B',
+    cardShadowHex: '#D97706',
+    textShadowHex: '#78350F',
     detailItems: [
       { name: '2 Ko\'z', emoji: '👀', voice: 'Ikkita ko\'z!' },
       { name: '2 Olma', emoji: '🍎🍎', voice: 'Ikkita olma!' },
@@ -224,8 +361,11 @@ export const PICTURE_LESSONS: PictureCard[] = [
     emoji: '3️⃣',
     voice: 'Uch! Uchta yulduzcha!',
     category: 'numbers',
-    colorBg: 'bg-blue-100/90 text-blue-900',
-    borderColor: 'border-blue-400',
+    colorBg: 'bg-emerald-100/90 text-emerald-900',
+    borderColor: 'border-emerald-400',
+    cardBgHex: '#10B981',
+    cardShadowHex: '#059669',
+    textShadowHex: '#064E3B',
     detailItems: [
       { name: '3 Yulduz', emoji: '⭐⭐⭐', voice: 'Uchta yulduzcha!' },
     ],
@@ -236,8 +376,11 @@ export const PICTURE_LESSONS: PictureCard[] = [
     emoji: '4️⃣',
     voice: 'To\'rt! Mashinaning 4 ta g\'ildiragi!',
     category: 'numbers',
-    colorBg: 'bg-teal-100/90 text-teal-900',
-    borderColor: 'border-teal-400',
+    colorBg: 'bg-purple-100/90 text-purple-900',
+    borderColor: 'border-purple-400',
+    cardBgHex: '#8B5CF6',
+    cardShadowHex: '#7C3AED',
+    textShadowHex: '#4C1D95',
     detailItems: [
       { name: '4 G\'ildirak', emoji: '🚗', voice: 'To\'rtta g\'ildirak!' },
     ],
@@ -250,8 +393,86 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'numbers',
     colorBg: 'bg-pink-100/90 text-pink-900',
     borderColor: 'border-pink-400',
+    cardBgHex: '#EC4899',
+    cardShadowHex: '#DB2777',
+    textShadowHex: '#831843',
     detailItems: [
       { name: '5 Barmoq', emoji: '🖐️', voice: 'Beshta barmoq!' },
+    ],
+  },
+  {
+    id: 'n-6',
+    name: 'Olti (6)',
+    emoji: '6️⃣',
+    voice: 'Olti! Oltita kapalak!',
+    category: 'numbers',
+    colorBg: 'bg-orange-100/90 text-orange-900',
+    borderColor: 'border-orange-400',
+    cardBgHex: '#F97316',
+    cardShadowHex: '#EA580C',
+    textShadowHex: '#7C2D12',
+    detailItems: [
+      { name: '6 Kapalak', emoji: '🦋', voice: 'Oltita chiroyli kapalak!' },
+    ],
+  },
+  {
+    id: 'n-7',
+    name: 'Yetti (7)',
+    emoji: '7️⃣',
+    voice: 'Yetti! Kamalakning 7 ta rangi!',
+    category: 'numbers',
+    colorBg: 'bg-cyan-100/90 text-cyan-900',
+    borderColor: 'border-cyan-400',
+    cardBgHex: '#06B6D4',
+    cardShadowHex: '#0891B2',
+    textShadowHex: '#164E63',
+    detailItems: [
+      { name: '7 Rang', emoji: '🌈', voice: 'Kamalakning yettita rangi!' },
+    ],
+  },
+  {
+    id: 'n-8',
+    name: 'Sakkiz (8)',
+    emoji: '8️⃣',
+    voice: 'Sakkiz! Sakkizoyoqning sakkiz oyog\'i!',
+    category: 'numbers',
+    colorBg: 'bg-fuchsia-100/90 text-fuchsia-900',
+    borderColor: 'border-fuchsia-400',
+    cardBgHex: '#D946EF',
+    cardShadowHex: '#C026D3',
+    textShadowHex: '#701A75',
+    detailItems: [
+      { name: '8 Oyoq', emoji: '🐙', voice: 'Sakkizta oyoqcha!' },
+    ],
+  },
+  {
+    id: 'n-9',
+    name: 'To\'qqiz (9)',
+    emoji: '9️⃣',
+    voice: 'To\'qqiz! To\'qqizta sharik!',
+    category: 'numbers',
+    colorBg: 'bg-indigo-100/90 text-indigo-900',
+    borderColor: 'border-indigo-400',
+    cardBgHex: '#6366F1',
+    cardShadowHex: '#4F46E5',
+    textShadowHex: '#312E81',
+    detailItems: [
+      { name: '9 Shar', emoji: '🎈', voice: 'To\'qqizta havo shari!' },
+    ],
+  },
+  {
+    id: 'n-10',
+    name: 'O\'n (10)',
+    emoji: '🔟',
+    voice: 'O\'n! Ikkita qo\'lda o\'nta barmoq!',
+    category: 'numbers',
+    colorBg: 'bg-yellow-100/90 text-yellow-900',
+    borderColor: 'border-yellow-400',
+    cardBgHex: '#EAB308',
+    cardShadowHex: '#CA8A04',
+    textShadowHex: '#713F12',
+    detailItems: [
+      { name: '10 Barmoq', emoji: '🙌', voice: 'O\'nta baxtli barmoqcha!' },
     ],
   },
 
@@ -264,6 +485,12 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'fruits',
     colorBg: 'bg-rose-100/90 text-rose-900',
     borderColor: 'border-rose-400',
+    cardBgHex: '#FF4D6D',
+    cardShadowHex: '#C9184A',
+    textShadowHex: '#800F2F',
+    detailItems: [
+      { name: 'Mazzali', emoji: '🍎', voice: 'Shirin qizil olma!' },
+    ],
   },
   {
     id: 'f-banana',
@@ -273,6 +500,12 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'fruits',
     colorBg: 'bg-amber-100/90 text-amber-900',
     borderColor: 'border-amber-400',
+    cardBgHex: '#FFB703',
+    cardShadowHex: '#FB8500',
+    textShadowHex: '#9A4C00',
+    detailItems: [
+      { name: 'Sariq', emoji: '🍌', voice: 'Iliq quyoshli banan!' },
+    ],
   },
   {
     id: 'f-watermelon',
@@ -282,6 +515,12 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'fruits',
     colorBg: 'bg-emerald-100/90 text-emerald-900',
     borderColor: 'border-emerald-400',
+    cardBgHex: '#2EC4B6',
+    cardShadowHex: '#0E9587',
+    textShadowHex: '#065F56',
+    detailItems: [
+      { name: 'Muzdek', emoji: '🍉', voice: 'Muzdek qizil tarvuz!' },
+    ],
   },
   {
     id: 'f-grape',
@@ -291,5 +530,56 @@ export const PICTURE_LESSONS: PictureCard[] = [
     category: 'fruits',
     colorBg: 'bg-purple-100/90 text-purple-900',
     borderColor: 'border-purple-400',
+    cardBgHex: '#8338EC',
+    cardShadowHex: '#5A189A',
+    textShadowHex: '#3C096C',
+    detailItems: [
+      { name: 'Shingil', emoji: '🍇', voice: 'Shirin uzum!' },
+    ],
+  },
+  {
+    id: 'f-strawberry',
+    name: 'Qulupnay',
+    emoji: '🍓',
+    voice: 'Xushbo\'y qizil qulupnay!',
+    category: 'fruits',
+    colorBg: 'bg-rose-100/90 text-rose-900',
+    borderColor: 'border-rose-400',
+    cardBgHex: '#FF5E7E',
+    cardShadowHex: '#D81159',
+    textShadowHex: '#8F0B3A',
+    detailItems: [
+      { name: 'Shirin', emoji: '🍓', voice: 'Mazzali qulupnay!' },
+    ],
+  },
+  {
+    id: 'f-orange',
+    name: 'Apelsin',
+    emoji: '🍊',
+    voice: 'Sersuv va foydali apelsin!',
+    category: 'fruits',
+    colorBg: 'bg-orange-100/90 text-orange-900',
+    borderColor: 'border-orange-400',
+    cardBgHex: '#FB8500',
+    cardShadowHex: '#D95D00',
+    textShadowHex: '#7A3400',
+    detailItems: [
+      { name: 'Vitamin', emoji: '🍊', voice: 'Vitaminlarga boy apelsin!' },
+    ],
+  },
+  {
+    id: 'f-pineapple',
+    name: 'Ananas',
+    emoji: '🍍',
+    voice: 'Tropik sehrli ananas!',
+    category: 'fruits',
+    colorBg: 'bg-amber-100/90 text-amber-900',
+    borderColor: 'border-amber-400',
+    cardBgHex: '#FFB703',
+    cardShadowHex: '#CC8A00',
+    textShadowHex: '#7A5200',
+    detailItems: [
+      { name: 'Tropik', emoji: '🍍', voice: 'Tropik ananas!' },
+    ],
   },
 ];

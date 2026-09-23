@@ -3,13 +3,22 @@ import { Volume2, ArrowLeft, ArrowRight, RotateCcw, Sparkles } from 'lucide-reac
 import confetti from 'canvas-confetti';
 import { SIZE_COMPARE_LEVELS } from '../../data/gamesData';
 import { soundFx, speakUzbek } from '../../utils/audio';
+import { playAchievementVoice } from '../../utils/encouragementAudio';
+import { UserProfile } from '../../types';
 
 interface SizeCompareGameProps {
   onEarnStars: (stars: number) => void;
   onBack: () => void;
+  userProfile?: UserProfile | null;
+  onAwardGift?: () => void;
 }
 
-export const SizeCompareGame: React.FC<SizeCompareGameProps> = ({ onEarnStars, onBack }) => {
+export const SizeCompareGame: React.FC<SizeCompareGameProps> = ({
+  onEarnStars,
+  onBack,
+  userProfile,
+  onAwardGift,
+}) => {
   const [levelIdx, setLevelIdx] = useState<number>(0);
   const [selectedItem, setSelectedItem] = useState<'A' | 'B' | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -34,6 +43,17 @@ export const SizeCompareGame: React.FC<SizeCompareGameProps> = ({ onEarnStars, o
       setFeedback(praise);
       speakUzbek(praise);
       onEarnStars(2);
+
+      const isLastLevel = levelIdx === SIZE_COMPARE_LEVELS.length - 1;
+      if (isLastLevel) {
+        setTimeout(() => {
+          soundFx.playFanfare();
+          confetti({ particleCount: 90, spread: 85, origin: { y: 0.55 } });
+          onAwardGift?.();
+          const childName = userProfile?.firstName || 'Bolajon';
+          playAchievementVoice('game', childName);
+        }, 700);
+      }
     } else {
       soundFx.playGentleRetry();
       const retryText = currentLevel.target === 'big' ? 'Bu kichikroq. Kattasini tanlab ko\'ring!' : 'Bu kattaroq. Kichigini tanlang!';
@@ -53,7 +73,9 @@ export const SizeCompareGame: React.FC<SizeCompareGameProps> = ({ onEarnStars, o
     } else {
       soundFx.playFanfare();
       confetti({ particleCount: 80, spread: 80 });
-      speakUzbek(`Ofarin! Katta va kichik o'lchamlarni a'lo darajada o'rgandingiz!`);
+      onAwardGift?.();
+      const childName = userProfile?.firstName || 'Bolajon';
+      playAchievementVoice('game', childName);
     }
   };
 
@@ -179,24 +201,44 @@ export const SizeCompareGame: React.FC<SizeCompareGameProps> = ({ onEarnStars, o
               <Sparkles className="w-5 h-5" />
             </button>
           ) : (
-            <div className="p-4 rounded-3xl bg-emerald-50 border-3 border-emerald-300 max-w-sm mx-auto shadow-md">
-              <div className="flex items-center justify-center gap-2 text-2xl mb-2">
+            <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-50 via-yellow-50 to-emerald-50 border-3 border-amber-300 max-w-md mx-auto shadow-xl">
+              <div className="flex items-center justify-center gap-2 text-3xl mb-2">
                 <span>⭐</span>
+                <span>🎁</span>
                 <span>🏆</span>
+                <span>🎁</span>
                 <span>⭐</span>
               </div>
-              <button
-                onClick={() => {
-                  setLevelIdx(0);
-                  setSelectedItem(null);
-                  setFeedback(null);
-                  setIsPassed(false);
-                }}
-                className="px-6 py-2.5 rounded-2xl bg-emerald-600 text-white font-black text-sm inline-flex items-center gap-2 shadow-sm transition-transform active:scale-95"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Qaytadan</span>
-              </button>
+              <h3 className="text-xl font-black text-slate-800 mb-1">
+                Barakalla! Barcha o'lchamlarni to'g'ri topdingiz!
+              </h3>
+              <p className="text-sm font-black text-amber-700 mb-3">
+                Siz yangi sovg'a bilan taqdirlandingiz!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2.5 items-center justify-center">
+                <button
+                  onClick={() => {
+                    soundFx.playFanfare();
+                    onAwardGift?.();
+                  }}
+                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 hover:from-amber-500 hover:to-pink-600 text-white font-black text-base inline-flex items-center justify-center gap-2 shadow-lg ring-3 ring-amber-300 animate-bounce-gentle transition-transform active:scale-95"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  <span>🎁 Sovg'ani Olish!</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setLevelIdx(0);
+                    setSelectedItem(null);
+                    setFeedback(null);
+                    setIsPassed(false);
+                  }}
+                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-sm inline-flex items-center justify-center gap-2 shadow-xs transition-transform active:scale-95"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Qaytadan</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

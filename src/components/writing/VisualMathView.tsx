@@ -18,12 +18,14 @@ interface VisualMathViewProps {
   onEarnStars: (stars: number) => void;
   onBack?: () => void;
   onTaskProgress?: () => void;
+  onAwardGift?: () => void;
 }
 
 export const VisualMathView: React.FC<VisualMathViewProps> = ({
   onEarnStars,
   onBack,
   onTaskProgress,
+  onAwardGift,
 }) => {
   const [lang, setLang] = useState<AppLanguage>('uz');
   const [filterOp, setFilterOp] = useState<'+' | '-' | 'all'>('all');
@@ -41,10 +43,13 @@ export const VisualMathView: React.FC<VisualMathViewProps> = ({
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [evalResult, setEvalResult] = useState<'idle' | 'correct' | 'wrong'>('idle');
 
-  // Reset answer when changing problem, filter, or language
+  // Reset answer when changing problem, filter, or language and auto-speak prompt
   useEffect(() => {
     setSelectedOption(null);
     setEvalResult('idle');
+    if (langDetail?.speechPrompt) {
+      speakLanguage(langDetail.speechPrompt, lang as SupportedSpeechLang);
+    }
   }, [activeIdx, filterOp, lang]);
 
   // Audio prompt handler
@@ -65,6 +70,11 @@ export const VisualMathView: React.FC<VisualMathViewProps> = ({
       onEarnStars(2);
       onTaskProgress?.();
       speakLanguage(langDetail.correctFeedback, lang as SupportedSpeechLang);
+
+      // Auto-advance to next math problem after 1.5s
+      setTimeout(() => {
+        handleNext();
+      }, 1500);
     } else {
       setEvalResult('wrong');
       soundFx.playWrong();
@@ -77,6 +87,18 @@ export const VisualMathView: React.FC<VisualMathViewProps> = ({
     if (activeIdx < filteredProblems.length - 1) {
       setActiveIdx((prev) => prev + 1);
     } else {
+      // Completed all math problems! Celebration + extra stars + gift!
+      soundFx.playSuccess();
+      confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
+      onEarnStars(5);
+      onAwardGift?.();
+      const finishSpeech =
+        lang === 'ru'
+          ? 'Молодец! Ты правильно решил все примеры! Держи подарок!'
+          : lang === 'en'
+          ? 'Awesome! You solved all math problems correctly! Here is your gift!'
+          : "Barakalla! Barcha misollarni muvaffaqiyatli yechib bo'ldingiz! Sizga sovg'a berildi!";
+      speakLanguage(finishSpeech, lang as SupportedSpeechLang);
       setActiveIdx(0);
     }
   };
@@ -356,18 +378,25 @@ export const VisualMathView: React.FC<VisualMathViewProps> = ({
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-              {currentProblem.options.map((opt) => {
+              {currentProblem.options.map((opt, idx) => {
                 const isChosen = selectedOption === opt;
-                let btnStyle =
-                  'bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-sm';
+                const colors = [
+                  { bg: '#FF5376', shadow: '#D92348', text: '#8A0D26' },
+                  { bg: '#388DFF', shadow: '#1764D1', text: '#0D3D8A' },
+                  { bg: '#54D66E', shadow: '#24A640', text: '#0F5E22' },
+                  { bg: '#FFBE26', shadow: '#D49206', text: '#784E00' },
+                ];
+                const c = colors[idx % colors.length];
 
+                let currentBg = c.bg;
+                let currentShadow = c.shadow;
                 if (isChosen) {
                   if (evalResult === 'correct') {
-                    btnStyle =
-                      'bg-emerald-500 text-white border-2 border-emerald-600 shadow-lg scale-105';
+                    currentBg = '#10B981';
+                    currentShadow = '#059669';
                   } else if (evalResult === 'wrong') {
-                    btnStyle =
-                      'bg-rose-500 text-white border-2 border-rose-600 shadow-lg';
+                    currentBg = '#EF4444';
+                    currentShadow = '#DC2626';
                   }
                 }
 
@@ -375,18 +404,29 @@ export const VisualMathView: React.FC<VisualMathViewProps> = ({
                   <button
                     key={opt}
                     onClick={() => handleSelectOption(opt)}
-                    className={`min-w-[85px] sm:min-w-[110px] py-3.5 px-4 rounded-3xl flex flex-col items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${btnStyle}`}
+                    style={{
+                      backgroundColor: currentBg,
+                      boxShadow: `0 8px 0px ${currentShadow}, 0 12px 16px rgba(0,0,0,0.22)`,
+                    }}
+                    className={`min-w-[90px] sm:min-w-[115px] py-3.5 px-4 rounded-3xl border-2 border-white/70 flex flex-col items-center gap-1.5 transition-all duration-150 transform hover:-translate-y-1 active:translate-y-1 cursor-pointer text-white select-none ${
+                      isChosen && evalResult === 'correct' ? 'ring-4 ring-yellow-300 scale-105' : ''
+                    }`}
                   >
-                    <span className="text-3xl sm:text-4xl font-black">
+                    <span
+                      className="text-3xl sm:text-4xl font-black"
+                      style={{
+                        textShadow: `0 2px 0 ${c.text}, 0 3px 5px rgba(0,0,0,0.35)`,
+                      }}
+                    >
                       {opt}
                     </span>
-                    <div className="flex items-center gap-0.5 opacity-90">
+                    <div className="flex items-center gap-0.5 opacity-95">
                       {Array.from({ length: Math.min(opt, 5) }).map((_, i) => (
-                        <span key={i} className="text-xs sm:text-sm">
+                        <span key={i} className="text-sm sm:text-base filter drop-shadow-xs">
                           {currentProblem.emoji}
                         </span>
                       ))}
-                      {opt > 5 && <span className="text-xs font-bold">..</span>}
+                      {opt > 5 && <span className="text-xs font-black">..</span>}
                     </div>
                   </button>
                 );

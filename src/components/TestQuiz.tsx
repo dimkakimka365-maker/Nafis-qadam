@@ -3,6 +3,7 @@ import { Volume2, RotateCcw, Award, Sparkles, Edit3, Heart, Star } from 'lucide-
 import confetti from 'canvas-confetti';
 import { getQuestionsForAge, KidsQuizQuestion } from '../data/testsData';
 import { soundFx, speakUzbek } from '../utils/audio';
+import { playAchievementVoice } from '../utils/encouragementAudio';
 import { PatternTestView } from './pattern/PatternTestView';
 import { VisualMatrixTestView } from './pattern/VisualMatrixTestView';
 import { MemoryMatrixGame } from './games/MemoryMatrixGame';
@@ -15,6 +16,7 @@ interface TestQuizProps {
   onEarnStars: (stars: number) => void;
   onCompleteTest: (score: number) => void;
   onOpenCertificate: () => void;
+  onAwardGift?: () => void;
 }
 
 type TestMode = 'pattern_blocks' | 'memory_matrix' | 'visual_sequences' | 'picture_questions';
@@ -26,6 +28,7 @@ export const TestQuiz: React.FC<TestQuizProps> = ({
   onEarnStars,
   onCompleteTest,
   onOpenCertificate,
+  onAwardGift,
 }) => {
   const age = userProfile?.age || 5;
   const ageGroup = getAgeGroup(age);
@@ -99,9 +102,10 @@ export const TestQuiz: React.FC<TestQuizProps> = ({
     } else {
       setIsFinished(true);
       onCompleteTest(score + (isCorrect ? 1 : 0));
+      onAwardGift?.();
       confetti({ particleCount: 100, spread: 100, origin: { y: 0.5 } });
       const childName = userProfile?.firstName || userName;
-      speakUzbek(`Tabriklaymiz, ${childName}! Siz barcha topishmoqlarni ajoyib bajardingiz!`);
+      playAchievementVoice('quiz', childName);
     }
   };
 
@@ -252,17 +256,27 @@ export const TestQuiz: React.FC<TestQuizProps> = ({
         <PatternTestView
           onEarnStars={onEarnStars}
           onOpenCertificate={onOpenCertificate}
+          userProfile={userProfile}
+          onAwardGift={onAwardGift}
         />
       )}
 
       {/* 2. MEMORY MATRIX TEST (Xotira Matritsasi) */}
       {activeTestMode === 'memory_matrix' && (
-        <MemoryMatrixGame onEarnStars={onEarnStars} />
+        <MemoryMatrixGame
+          onEarnStars={onEarnStars}
+          userProfile={userProfile}
+          onAwardGift={onAwardGift}
+        />
       )}
 
       {/* 3. VISUAL MATRIX & COLOR MOSAIC */}
       {activeTestMode === 'visual_sequences' && (
-        <VisualMatrixTestView onEarnStars={onEarnStars} />
+        <VisualMatrixTestView
+          onEarnStars={onEarnStars}
+          userProfile={userProfile}
+          onAwardGift={onAwardGift}
+        />
       )}
 
       {/* 4. PICTURE QUESTIONS (TAILORED TO AGE) */}

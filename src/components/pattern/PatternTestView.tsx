@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Volume2,
   CheckCircle2,
@@ -17,7 +17,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { CellPattern, PatternPuzzle } from '../../types';
+import { CellPattern, PatternPuzzle, UserProfile } from '../../types';
 import {
   DIFFICULTY_TIERS,
   getTierForDay,
@@ -26,6 +26,7 @@ import {
 } from '../../data/dailyPatternProgression';
 import { PatternCell } from './PatternCell';
 import { soundFx, speakUzbek } from '../../utils/audio';
+import { playAchievementVoice } from '../../utils/encouragementAudio';
 import puzzleBg from '../../assets/images/kids_puzzle_bg_1788797145649.jpg';
 import skyBg from '../../assets/images/kids_magical_sky_1788786010838.jpg';
 
@@ -33,6 +34,8 @@ interface PatternTestViewProps {
   onEarnStars: (stars: number) => void;
   onOpenCertificate?: () => void;
   onBack?: () => void;
+  userProfile?: UserProfile | null;
+  onAwardGift?: () => void;
 }
 
 const CYCLE_ORDER: CellPattern[] = ['empty', 'solid', 'tl', 'tr', 'bl', 'br'];
@@ -45,6 +48,8 @@ export const PatternTestView: React.FC<PatternTestViewProps> = ({
   onEarnStars,
   onOpenCertificate,
   onBack,
+  userProfile,
+  onAwardGift,
 }) => {
   // Current active training day (1 to 20+)
   const [currentDay, setCurrentDay] = useState<number>(() => {
@@ -100,8 +105,20 @@ export const PatternTestView: React.FC<PatternTestViewProps> = ({
   const [showHint, setShowHint] = useState<boolean>(false);
   const [bgTheme, setBgTheme] = useState<BgTheme>('cartoon_rainbow');
   const [showTierCongrats, setShowTierCongrats] = useState<boolean>(false);
+  const [autoAdvanceSec, setAutoAdvanceSec] = useState<number | null>(null);
+
+  const autoTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentTier: DifficultyTierInfo = getTierForDay(currentDay);
+
+  // Clear timers on day change
+  useEffect(() => {
+    return () => {
+      if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    };
+  }, [currentDay, variantIndex]);
 
   // Update puzzle when day or variant changes
   useEffect(() => {
@@ -170,6 +187,7 @@ export const PatternTestView: React.FC<PatternTestViewProps> = ({
       confetti({ particleCount: 90, spread: 85, origin: { y: 0.6 } });
       setIsSuccess(true);
       onEarnStars(3);
+      onAwardGift?.();
 
       // Record completion
       if (!completedDays.includes(currentDay)) {
@@ -198,12 +216,30 @@ export const PatternTestView: React.FC<PatternTestViewProps> = ({
 
       // Check if advancing introduces a new tier
       const nextTier = getTierForDay(nextDay);
+      const childName = userProfile?.firstName || 'Bolajon';
       if (nextTier.tier > currentTier.tier) {
         setShowTierCongrats(true);
-        speakUzbek(`Ofarin! Siz ${currentTier.name}ni muvaffaqiyatli yakunladingiz! Keyingi daraja yanada murakkabroq bo'ladi!`);
+        speakUzbek(`Ofarin, ${childName}! Siz ${currentTier.name}ni muvaffaqiyatli yakunladingiz! Keyingi daraja yanada murakkabroq bo'ladi!`);
+        playAchievementVoice('test', childName);
       } else {
-        speakUzbek("Ofarin! To'ppa-to'g'ri bajardingiz! Yana yangi mashq qilasizmi yoki keyingi kunga o'tasizmi?");
+        playAchievementVoice('test', childName);
       }
+
+      // ⚡ AVTOMATIK KEYINGI QIYINROQ KUN / BOSQICHGA O'TISH
+      setAutoAdvanceSec(2);
+      let count = 2;
+      countdownIntervalRef.current = setInterval(() => {
+        count -= 1;
+        if (count >= 0) {
+          setAutoAdvanceSec(count);
+        } else {
+          if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+        }
+      }, 700);
+
+      autoTimerRef.current = setTimeout(() => {
+        handleNextDay();
+      }, 1800);
     } else {
       soundFx.playGentleRetry();
       setShowHint(true);
@@ -214,6 +250,10 @@ export const PatternTestView: React.FC<PatternTestViewProps> = ({
   // "Yana boshqachasi kelsin" -> Generate a new unique puzzle for today!
   const handleNextVariantForToday = () => {
     soundFx.playClick();
+    if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setAutoAdvanceSec(null);
+
     setVariantIndex((prev) => prev + 1);
     setShowTierCongrats(false);
     speakUzbek("Mana sizga yangi boshqacha mashq! Qani, buni ham yechib ko'ring!");
@@ -222,6 +262,10 @@ export const PatternTestView: React.FC<PatternTestViewProps> = ({
   // Move to Next Day (progresses difficulty)
   const handleNextDay = () => {
     soundFx.playClick();
+    if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setAutoAdvanceSec(null);
+
     setShowTierCongrats(false);
     const nextDay = currentDay + 1;
     setCurrentDay(nextDay);
@@ -289,6 +333,13 @@ export const PatternTestView: React.FC<PatternTestViewProps> = ({
               <span>{currentTier.badgeEmoji}</span>
               <span>{currentTier.name}</span>
             </span>
+
+            {userProfile && (
+              <span className="hidden sm:inline-flex items-center gap-1 text-xs font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300">
+                <span>{userProfile.avatar}</span>
+                <span>{userProfile.firstName} ({userProfile.age} yosh)</span>
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -605,7 +656,13 @@ export const PatternTestView: React.FC<PatternTestViewProps> = ({
                     onClick={handleNextDay}
                     className="w-full py-2.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-95 cursor-pointer"
                   >
-                    <span>Keyingi ({currentDay + 1}-kun) ➔</span>
+                    <span>Keyingi ({currentDay + 1}-kun)</span>
+                    <ArrowRight className="w-4 h-4" />
+                    {autoAdvanceSec !== null && autoAdvanceSec > 0 && (
+                      <span className="ml-1 px-2 py-0.5 rounded-full bg-white/25 text-xs font-black">
+                        {autoAdvanceSec}s
+                      </span>
+                    )}
                   </button>
 
                   {currentDay >= 16 && onOpenCertificate && (

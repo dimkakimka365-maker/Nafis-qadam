@@ -18,17 +18,21 @@ import {
   SyllableWord,
 } from '../../data/syllablesAndMathData';
 import { soundFx, speakLanguage, SupportedSpeechLang } from '../../utils/audio';
+import { formatSyllableForSpeech, formatWordSyllablesForSpeech } from '../../utils/uzbekPhonetics';
+import { Syllable3DGraphic } from './Syllable3DGraphic';
 
 interface SyllablesReadingViewProps {
   onEarnStars: (stars: number) => void;
   onBack?: () => void;
   onTaskProgress?: () => void;
+  onAwardGift?: () => void;
 }
 
 export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
   onEarnStars,
   onBack,
   onTaskProgress,
+  onAwardGift,
 }) => {
   const [lang, setLang] = useState<AppLanguage>('uz');
   const [activeIdx, setActiveIdx] = useState<number>(0);
@@ -55,12 +59,27 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
     // Simple shuffle
     const shuffled = [...raw].sort(() => Math.random() - 0.5);
     setScrambledSyllables(shuffled);
+
+    // Auto-read word and syllables when opening or flipping cards in learn mode
+    if (activeMode === 'learn') {
+      const speech = formatWordSyllablesForSpeech(
+        itemData.syllables,
+        langDetail.wordName,
+        lang as 'uz' | 'ru' | 'en'
+      );
+      speakLanguage(speech, lang as SupportedSpeechLang);
+    }
   }, [activeIdx, lang, activeMode]);
 
   // Voice speech handler for the whole word or syllable
   const speakWholeWord = () => {
     soundFx.playClick();
-    speakLanguage(langDetail.voiceReading, lang as SupportedSpeechLang);
+    const speech = formatWordSyllablesForSpeech(
+      itemData.syllables,
+      langDetail.wordName,
+      lang as 'uz' | 'ru' | 'en'
+    );
+    speakLanguage(speech, lang as SupportedSpeechLang);
   };
 
   const handleTapSyllable = (syl: string, idx?: number) => {
@@ -68,13 +87,15 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
     if (idx !== undefined) {
       setActiveHighlightedSyl(idx);
     }
-    speakLanguage(syl, lang as SupportedSpeechLang);
+    const speech = formatSyllableForSpeech(syl, lang as 'uz' | 'ru' | 'en');
+    speakLanguage(speech, lang as SupportedSpeechLang);
   };
 
   // Puzzle tap handler
   const handlePuzzlePick = (syl: string, pickIndex: number) => {
     soundFx.playClick();
-    speakLanguage(syl, lang as SupportedSpeechLang);
+    const speech = formatSyllableForSpeech(syl, lang as 'uz' | 'ru' | 'en');
+    speakLanguage(speech, lang as SupportedSpeechLang);
 
     const nextAssembled = [...assembledSyllables, syl];
     setAssembledSyllables(nextAssembled);
@@ -95,13 +116,28 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
         confetti({ particleCount: 60, spread: 70, origin: { y: 0.65 } });
         onEarnStars(2);
         onTaskProgress?.();
-        const feedback = langDetail.correctFeedback;
-        speakLanguage(`${feedback} ${langDetail.wordName}`, lang as SupportedSpeechLang);
+        const successSpeech =
+          lang === 'uz'
+            ? `To'g'ri! Barakalla! ${langDetail.wordName} so'zi hosil bo'ldi!`
+            : lang === 'ru'
+            ? `Правильно! Молодец! Получилось слово ${langDetail.wordName}!`
+            : `Correct! Well done! Word ${langDetail.wordName}!`;
+        speakLanguage(successSpeech, lang as SupportedSpeechLang);
+
+        // Auto-advance to next word after 1.5s!
+        setTimeout(() => {
+          handleNext();
+        }, 1500);
       } else {
         setEvalResult('wrong');
         soundFx.playWrong();
-        const feedback = langDetail.wrongFeedback;
-        speakLanguage(feedback, lang as SupportedSpeechLang);
+        const wrongSpeech =
+          lang === 'uz'
+            ? "Xato! Qaytadan urinib ko'r!"
+            : lang === 'ru'
+            ? 'Неправильно! Попробуй ещё раз!'
+            : 'Incorrect! Try again!';
+        speakLanguage(wrongSpeech, lang as SupportedSpeechLang);
       }
     }
   };
@@ -119,6 +155,18 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
     if (activeIdx < SYLLABLE_WORDS.length - 1) {
       setActiveIdx((prev) => prev + 1);
     } else {
+      // Finished all syllable words! Big celebration + reward
+      soundFx.playSuccess();
+      confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
+      onEarnStars(5);
+      onAwardGift?.();
+      const finishSpeech =
+        lang === 'ru'
+          ? 'Молодец! Ты собрал все слова! Держи новый подарок!'
+          : lang === 'en'
+          ? 'Awesome! You assembled all words! Here is your new gift!'
+          : "Barakalla! Barcha so'zlarni muvaffaqiyatli yig'dingiz! Yangi sovg'a berildi!";
+      speakLanguage(finishSpeech, lang as SupportedSpeechLang);
       setActiveIdx(0);
     }
   };
@@ -134,8 +182,8 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 pb-8 select-none">
-      {/* Top Header: Navigation & 3 Languages */}
-      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-indigo-200/80 shadow-xs mb-4">
+      {/* Top Header: Navigation & 3 Languages in 3D Card */}
+      <div className="bg-white/95 rounded-3xl p-3 sm:p-4 border-2 border-indigo-200 border-b-[5px] border-b-indigo-300 shadow-[0_4px_12px_rgba(99,102,241,0.1)] mb-4">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           {onBack ? (
             <button
@@ -143,28 +191,28 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
                 soundFx.playClick();
                 onBack();
               }}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs sm:text-sm flex items-center gap-1 transition-transform active:scale-95 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-2xl bg-gradient-to-b from-white to-slate-100 border border-slate-300 border-b-[3px] border-b-slate-400 text-slate-800 font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-[0_2px_0_#94a3b8] active:translate-y-0.5 active:border-b active:shadow-none cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 text-indigo-600" />
               <span>Orqaga</span>
             </button>
           ) : (
-            <div className="flex items-center gap-1.5 text-indigo-900 font-black text-sm">
-              <span>📖</span>
+            <div className="flex items-center gap-1.5 text-indigo-950 font-black text-sm sm:text-base">
+              <span className="text-xl">📖</span>
               <span>Bo'g'inlab O'qish</span>
             </div>
           )}
 
           {/* 3 Languages Switcher */}
-          <div className="flex items-center gap-1 bg-indigo-50 p-1 rounded-2xl border border-indigo-200">
+          <div className="flex items-center gap-1.5 bg-indigo-50/80 p-1.5 rounded-2xl border border-indigo-200">
             <button
               onClick={() => {
                 soundFx.playClick();
                 setLang('uz');
               }}
-              className={`px-2.5 sm:px-3 py-1 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1 cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1 cursor-pointer ${
                 lang === 'uz'
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 text-white border-b-2 border-indigo-800 shadow-[0_2px_0_#3730a3]'
                   : 'text-indigo-900 hover:bg-indigo-100'
               }`}
             >
@@ -177,9 +225,9 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
                 soundFx.playClick();
                 setLang('ru');
               }}
-              className={`px-2.5 sm:px-3 py-1 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1 cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1 cursor-pointer ${
                 lang === 'ru'
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 text-white border-b-2 border-indigo-800 shadow-[0_2px_0_#3730a3]'
                   : 'text-indigo-900 hover:bg-indigo-100'
               }`}
             >
@@ -192,9 +240,9 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
                 soundFx.playClick();
                 setLang('en');
               }}
-              className={`px-2.5 sm:px-3 py-1 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1 cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1 cursor-pointer ${
                 lang === 'en'
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 text-white border-b-2 border-indigo-800 shadow-[0_2px_0_#3730a3]'
                   : 'text-indigo-900 hover:bg-indigo-100'
               }`}
             >
@@ -204,16 +252,16 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
           </div>
 
           {/* Mode Switch: O'qish (Read) vs Puzzle (Yig'ish) */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => {
                 soundFx.playClick();
                 setActiveMode('learn');
               }}
-              className={`px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm flex items-center gap-1 transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer ${
                 activeMode === 'learn'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 border border-indigo-400 border-b-[3px] border-b-indigo-800 text-white shadow-[0_2px_0_#3730a3]'
+                  : 'bg-white hover:bg-slate-100 border border-slate-200 border-b-[3px] border-b-slate-300 text-slate-700 shadow-[0_2px_0_#cbd5e1]'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -225,10 +273,10 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
                 soundFx.playClick();
                 setActiveMode('puzzle');
               }}
-              className={`px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm flex items-center gap-1 transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer ${
                 activeMode === 'puzzle'
-                  ? 'bg-purple-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-gradient-to-b from-purple-500 to-purple-600 border border-purple-400 border-b-[3px] border-b-purple-800 text-white shadow-[0_2px_0_#6b21a8]'
+                  : 'bg-white hover:bg-slate-100 border border-slate-200 border-b-[3px] border-b-slate-300 text-slate-700 shadow-[0_2px_0_#cbd5e1]'
               }`}
             >
               <Puzzle className="w-3.5 h-3.5" />
@@ -238,13 +286,13 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
         </div>
       </div>
 
-      {/* Main Learning Card */}
-      <div className="bg-white/95 rounded-3xl p-5 sm:p-7 border-4 border-indigo-200 shadow-xl relative">
+      {/* Main Learning Card with 3D Border */}
+      <div className="bg-white/95 rounded-3xl p-5 sm:p-7 border-3 border-indigo-200 border-b-[8px] border-b-indigo-300 shadow-[0_12px_28px_rgba(99,102,241,0.16)] relative">
         {/* Navigation Bar */}
         <div className="flex items-center justify-between gap-2 pb-3 mb-4 border-b border-indigo-100">
           <button
             onClick={handlePrev}
-            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition-transform active:scale-90 cursor-pointer"
+            className="p-2.5 rounded-2xl bg-gradient-to-b from-white to-slate-100 border border-slate-200 border-b-[3px] border-b-slate-300 text-slate-800 transition-transform active:translate-y-0.5 active:border-b active:shadow-none cursor-pointer"
             title="Oldingi so'z"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -261,7 +309,7 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
 
           <button
             onClick={handleNext}
-            className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-transform active:scale-90 cursor-pointer"
+            className="p-2.5 rounded-2xl bg-gradient-to-b from-indigo-500 to-indigo-600 border border-indigo-400 border-b-[3px] border-b-indigo-800 text-white transition-transform active:translate-y-0.5 active:border-b active:shadow-none cursor-pointer"
             title="Keyingi so'z"
           >
             <ArrowRight className="w-5 h-5" />
@@ -271,37 +319,61 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
         {/* MODE 1: LEARN & READ (O'qish va Bo'g'inlarni bosish) */}
         {activeMode === 'learn' && (
           <div className="flex flex-col items-center text-center py-2">
-            {/* Picture Display */}
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-gradient-to-tr from-amber-50 to-orange-100 border-4 border-amber-200 shadow-lg flex items-center justify-center text-7xl sm:text-8xl animate-bounce-gentle">
-              {itemData.emoji}
+            {/* 3D Animated Illustration Display */}
+            <div className="w-36 h-36 sm:w-48 sm:h-48 rounded-3xl bg-gradient-to-tr from-amber-50 via-orange-50 to-yellow-100 border-4 border-amber-200 border-b-[6px] border-b-amber-300 shadow-[0_10px_25px_rgba(245,158,11,0.2)] flex items-center justify-center p-2 animate-bounce-gentle transition-transform hover:scale-105">
+              <Syllable3DGraphic
+                wordId={currentItem.id}
+                emoji={itemData.emoji}
+                className="w-full h-full"
+                allowChildToggle={true}
+              />
             </div>
 
             <p className="mt-3 text-xs sm:text-sm font-bold text-slate-500">
               Bo'g'inlarni barmog'ingiz bilan bosing va ovozini eshiting:
             </p>
 
-            {/* Syllable Blocks Display */}
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-              {itemData.syllables.map((syl, i) => (
-                <React.Fragment key={i}>
-                  <button
-                    onClick={() => handleTapSyllable(syl, i)}
-                    className={`px-5 sm:px-7 py-3 sm:py-4 rounded-2xl font-black text-2xl sm:text-3xl transition-all shadow-md active:scale-95 cursor-pointer ${
-                      activeHighlightedSyl === i
-                        ? 'bg-amber-400 text-white ring-4 ring-amber-200 scale-105'
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                    }`}
-                  >
-                    {syl}
-                  </button>
+            {/* Syllable Blocks Display (3D Colorful Bricks) */}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+              {itemData.syllables.map((syl, i) => {
+                const colors = [
+                  { bg: '#FF5376', shadow: '#D92348', text: '#8A0D26' },
+                  { bg: '#388DFF', shadow: '#1764D1', text: '#0D3D8A' },
+                  { bg: '#54D66E', shadow: '#24A640', text: '#0F5E22' },
+                  { bg: '#FFBE26', shadow: '#D49206', text: '#784E00' },
+                ];
+                const c = colors[i % colors.length];
+                const isHighlight = activeHighlightedSyl === i;
 
-                  {i < itemData.syllables.length - 1 && (
-                    <span className="text-3xl font-black text-indigo-300">
-                      -
-                    </span>
-                  )}
-                </React.Fragment>
-              ))}
+                return (
+                  <React.Fragment key={i}>
+                    <button
+                      onClick={() => handleTapSyllable(syl, i)}
+                      style={{
+                        backgroundColor: isHighlight ? '#F59E0B' : c.bg,
+                        boxShadow: `0 8px 0px ${isHighlight ? '#D97706' : c.shadow}, 0 12px 16px rgba(0,0,0,0.22)`,
+                      }}
+                      className={`px-6 sm:px-8 py-3.5 sm:py-4 rounded-3xl border-2 border-white/70 font-black text-2xl sm:text-3xl text-white transition-all duration-150 transform hover:-translate-y-1 active:translate-y-1 cursor-pointer select-none ${
+                        isHighlight ? 'ring-4 ring-yellow-300 scale-105' : ''
+                      }`}
+                    >
+                      <span
+                        style={{
+                          textShadow: `0 2px 0 ${c.text}, 0 3px 5px rgba(0,0,0,0.35)`,
+                        }}
+                      >
+                        {syl}
+                      </span>
+                    </button>
+
+                    {i < itemData.syllables.length - 1 && (
+                      <span className="text-3xl sm:text-4xl font-black text-indigo-300 select-none">
+                        -
+                      </span>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </div>
 
             {/* Assembled Word Result */}
@@ -312,10 +384,10 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
               </span>
             </div>
 
-            {/* Full Word Audio Pronounce Button */}
+            {/* Full Word Audio Pronounce Button in 3D */}
             <button
               onClick={speakWholeWord}
-              className="mt-6 px-7 py-3.5 rounded-3xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-black text-base sm:text-lg flex items-center gap-2 shadow-lg transition-transform active:scale-95 cursor-pointer"
+              className="mt-6 px-8 py-3.5 rounded-3xl bg-gradient-to-b from-amber-400 via-orange-500 to-amber-600 border-2 border-amber-300 border-b-[6px] border-b-amber-800 shadow-[0_6px_0_#9a3412,0_10px_20px_rgba(249,115,22,0.35)] text-white font-black text-base sm:text-lg flex items-center gap-2.5 transition-transform active:translate-y-1 active:border-b-2 active:shadow-none cursor-pointer"
             >
               <Volume2 className="w-6 h-6 animate-pulse" />
               <span>Ovozli eshitish 🔊</span>
@@ -326,8 +398,14 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
         {/* MODE 2: PUZZLE (Bo'g'inlardan so'zni yig'ish) */}
         {activeMode === 'puzzle' && (
           <div className="flex flex-col items-center text-center py-2">
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-purple-50 border-4 border-purple-200 shadow-md flex items-center justify-center text-6xl sm:text-7xl">
-              {itemData.emoji}
+            {/* 3D Picture in Puzzle Mode */}
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-purple-50/90 border-4 border-purple-200 border-b-[6px] border-b-purple-300 shadow-[0_8px_20px_rgba(168,85,247,0.18)] flex items-center justify-center p-2">
+              <Syllable3DGraphic
+                wordId={currentItem.id}
+                emoji={itemData.emoji}
+                className="w-full h-full"
+                allowChildToggle={false}
+              />
             </div>
 
             <h4 className="mt-2 text-sm sm:text-base font-bold text-purple-900">
@@ -375,18 +453,38 @@ export const SyllablesReadingView: React.FC<SyllablesReadingViewProps> = ({
               </div>
             )}
 
-            {/* Scrambled Syllables to choose from */}
+            {/* Scrambled Syllables to choose from (3D tactile blocks) */}
             {scrambledSyllables.length > 0 && evalResult !== 'correct' && (
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-                {scrambledSyllables.map((syl, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handlePuzzlePick(syl, idx)}
-                    className="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-2xl shadow-md transition-transform active:scale-90 cursor-pointer"
-                  >
-                    {syl}
-                  </button>
-                ))}
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                {scrambledSyllables.map((syl, idx) => {
+                  const colors = [
+                    { bg: '#FF5376', shadow: '#D92348', text: '#8A0D26' },
+                    { bg: '#388DFF', shadow: '#1764D1', text: '#0D3D8A' },
+                    { bg: '#54D66E', shadow: '#24A640', text: '#0F5E22' },
+                    { bg: '#FFBE26', shadow: '#D49206', text: '#784E00' },
+                  ];
+                  const c = colors[idx % colors.length];
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handlePuzzlePick(syl, idx)}
+                      style={{
+                        backgroundColor: c.bg,
+                        boxShadow: `0 8px 0px ${c.shadow}, 0 12px 16px rgba(0,0,0,0.22)`,
+                      }}
+                      className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-3xl border-2 border-white/70 text-white font-black text-2xl sm:text-3xl transition-all duration-150 transform hover:-translate-y-1 active:translate-y-1 cursor-pointer select-none"
+                    >
+                      <span
+                        style={{
+                          textShadow: `0 2px 0 ${c.text}, 0 3px 5px rgba(0,0,0,0.35)`,
+                        }}
+                      >
+                        {syl}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
 

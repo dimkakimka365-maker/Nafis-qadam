@@ -236,10 +236,127 @@ export const KIDS_TEST_QUESTIONS: KidsQuizQuestion[] = [
       { id: '3', text: 'Ruler / Chizg\'ich', emoji: '📏', isCorrect: false },
     ],
   },
+  // Qo'shimcha Zukko va Qiziqarli savollar
+  {
+    id: 's7',
+    ageGroup: 'senior',
+    question: 'Qaysi biri suvni muzlatganda hosil bo\'ladi?',
+    voiceText: 'Suv muzlaganda nima paydo bo\'ladi?',
+    pictureEmoji: '❄️',
+    options: [
+      { id: '1', text: 'Muz', emoji: '🧊', isCorrect: true },
+      { id: '2', text: 'Bug\'', emoji: '💨', isCorrect: false },
+      { id: '3', text: 'Olov', emoji: '🔥', isCorrect: false },
+    ],
+  },
+  {
+    id: 's8',
+    ageGroup: 'senior',
+    question: 'Qaysi transport faqat temir yo\'lda yuradi?',
+    voiceText: 'Relslar ustida qaysi mashina yuradi?',
+    pictureEmoji: '🛤️',
+    options: [
+      { id: '1', text: 'Poyezd', emoji: '🚆', isCorrect: true },
+      { id: '2', text: 'Avtobus', emoji: '🚌', isCorrect: false },
+      { id: '3', text: 'Taksi', emoji: '🚕', isCorrect: false },
+    ],
+  },
+  {
+    id: 's9',
+    ageGroup: 'senior',
+    question: 'Quyosh botgach, osmonda nimalar porlaydi?',
+    voiceText: 'Kechasi qorong\'uda osmonda nimalar ko\'rinadi?',
+    pictureEmoji: '🌌',
+    options: [
+      { id: '1', text: 'Yulduzlar', emoji: '✨', isCorrect: true },
+      { id: '2', text: 'Quyosh', emoji: '☀️', isCorrect: false },
+      { id: '3', text: 'Kamalak', emoji: '🌈', isCorrect: false },
+    ],
+  },
+  {
+    id: 's10',
+    ageGroup: 'senior',
+    question: 'Bir haftada necha kun bor?',
+    voiceText: 'Dushanbadan yakshangagacha necha kun?',
+    pictureEmoji: '📅',
+    options: [
+      { id: '1', text: '7 kun', emoji: '7️⃣', isCorrect: true },
+      { id: '2', text: '5 kun', emoji: '5️⃣', isCorrect: false },
+      { id: '3', text: '10 kun', emoji: '🔟', isCorrect: false },
+    ],
+  },
 ];
 
 export function getQuestionsForAge(age: number): KidsQuizQuestion[] {
   const group = getAgeGroup(age);
   const matched = KIDS_TEST_QUESTIONS.filter((q) => q.ageGroup === group);
   return matched.length > 0 ? matched : KIDS_TEST_QUESTIONS.slice(0, 6);
+}
+
+// Progressive endless quiz question selector: starts tailored to age, and climbs up continuously!
+export function getEndlessQuizQuestion(index: number, initialAge: number = 4): KidsQuizQuestion {
+  // Ordered from easiest to hardest
+  const allOrdered: KidsQuizQuestion[] = [
+    ...KIDS_TEST_QUESTIONS.filter((q) => q.ageGroup === 'junior'),
+    ...KIDS_TEST_QUESTIONS.filter((q) => q.ageGroup === 'middle'),
+    ...KIDS_TEST_QUESTIONS.filter((q) => q.ageGroup === 'senior'),
+  ];
+
+  if (index < allOrdered.length) {
+    return allOrdered[index];
+  }
+
+  // Procedural generator for endless questions after pool is exhausted
+  const endlessRiddles = [
+    {
+      q: 'Qaysi biri meva?',
+      v: 'Shirin va vitaminli meva qaysi biri?',
+      emoji: '🍓',
+      correct: { text: 'Qulupnay', emoji: '🍓' },
+      wrongs: [{ text: 'G\'isht', emoji: '🧱' }, { text: 'Qoshiq', emoji: '🥄' }],
+    },
+    {
+      q: 'Qaysi biri osmonda uchadi?',
+      v: 'Qanot qoqib osmonda parvoz qiluvchini toping!',
+      emoji: '🦅',
+      correct: { text: 'Burgut', emoji: '🦅' },
+      wrongs: [{ text: 'Mushuk', emoji: '🐱' }, { text: 'Velosiped', emoji: '🚲' }],
+    },
+    {
+      q: 'Qaysi biri suvda suzadi?',
+      v: 'Dengiz va okeanda kim yashaydi?',
+      emoji: '🐬',
+      correct: { text: 'Delfin', emoji: '🐬' },
+      wrongs: [{ text: 'Ayiqcha', emoji: '🐻' }, { text: 'Samolyot', emoji: '✈️' }],
+    },
+    {
+      q: 'Qaysi biri yorug\'lik beradi?',
+      v: 'Xonani yoki olamni yoritadigan narsa qaysi biri?',
+      emoji: '💡',
+      correct: { text: 'Chiroq', emoji: '💡' },
+      wrongs: [{ text: 'Yostiq', emoji: '🛏️' }, { text: 'Stakan', emoji: '🥛' }],
+    },
+  ];
+
+  const riddle = endlessRiddles[(index - allOrdered.length) % endlessRiddles.length];
+  const options = [
+    { id: '1', text: riddle.correct.text, emoji: riddle.correct.emoji, isCorrect: true },
+    { id: '2', text: riddle.wrongs[0].text, emoji: riddle.wrongs[0].emoji, isCorrect: false },
+    { id: '3', text: riddle.wrongs[1].text, emoji: riddle.wrongs[1].emoji, isCorrect: false },
+  ];
+
+  // Deterministically shuffle
+  for (let i = options.length - 1; i > 0; i--) {
+    const j = (i * 3 + index) % (i + 1);
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+
+  return {
+    id: `endless-${index}`,
+    ageGroup: 'senior',
+    question: riddle.q,
+    voiceText: riddle.v,
+    pictureEmoji: riddle.emoji,
+    options,
+  };
 }

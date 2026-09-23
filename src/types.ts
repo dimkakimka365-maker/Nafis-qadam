@@ -126,6 +126,7 @@ export interface AccessibilitySettings {
 export type AgeGroup = 'junior' | 'middle' | 'senior';
 
 export interface UserProfile {
+  id?: string;
   firstName: string;
   lastName: string;
   age: number;
