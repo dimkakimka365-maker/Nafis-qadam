@@ -1,6 +1,7 @@
 import React from 'react';
 import { AnimalCharacterGraphic } from '../common/AnimalCharacterGraphic';
 import { BirdGraphics } from './graphics/BirdGraphics';
+import { ShapeGraphics } from './graphics/ShapeGraphics';
 import { WildAnimalGraphics } from './graphics/WildAnimalGraphics';
 import { SeaAndInsectGraphics } from './graphics/SeaAndInsectGraphics';
 import { ConceptGraphics } from './graphics/ConceptGraphics';
@@ -12,25 +13,32 @@ interface ThreeDCardGraphicProps {
 }
 
 export const ThreeDCardGraphic: React.FC<ThreeDCardGraphicProps> = ({ cardId, emoji, className = 'w-24 h-24 sm:w-28 sm:h-28' }) => {
+  // Normalize cardId: strip dynamic progression suffixes like '-p0', '-p1', '-set2'
+  const baseId = cardId.replace(/-p\d+$/, '').replace(/-set\d+$/, '');
+
   // 1. Check dedicated high-definition vector graphics first
-  if (BirdGraphics[cardId]) {
-    const BirdComp = BirdGraphics[cardId];
+  if (ShapeGraphics[baseId] || ShapeGraphics[cardId]) {
+    const ShapeComp = ShapeGraphics[baseId] || ShapeGraphics[cardId];
+    return <ShapeComp className={className} />;
+  }
+  if (BirdGraphics[baseId] || BirdGraphics[cardId]) {
+    const BirdComp = BirdGraphics[baseId] || BirdGraphics[cardId];
     return <BirdComp className={className} />;
   }
-  if (WildAnimalGraphics[cardId]) {
-    const WildComp = WildAnimalGraphics[cardId];
+  if (WildAnimalGraphics[baseId] || WildAnimalGraphics[cardId]) {
+    const WildComp = WildAnimalGraphics[baseId] || WildAnimalGraphics[cardId];
     return <WildComp className={className} />;
   }
-  if (SeaAndInsectGraphics[cardId]) {
-    const SeaComp = SeaAndInsectGraphics[cardId];
+  if (SeaAndInsectGraphics[baseId] || SeaAndInsectGraphics[cardId]) {
+    const SeaComp = SeaAndInsectGraphics[baseId] || SeaAndInsectGraphics[cardId];
     return <SeaComp className={className} />;
   }
-  if (ConceptGraphics[cardId]) {
-    const ConceptComp = ConceptGraphics[cardId];
+  if (ConceptGraphics[baseId] || ConceptGraphics[cardId]) {
+    const ConceptComp = ConceptGraphics[baseId] || ConceptGraphics[cardId];
     return <ConceptComp className={className} />;
   }
 
-  switch (cardId) {
+  switch (baseId) {
     // ----------------------------------------------------
     // 1. QIZIL (3D Glossy Red Sphere)
     // ----------------------------------------------------
@@ -1371,8 +1379,9 @@ export const ThreeDCardGraphic: React.FC<ThreeDCardGraphicProps> = ({ cardId, em
 
     // Fallback: Dynamic 2-digit numbers, animals, birds, big words, emojis
     default: {
-      // 1. Check if cardId represents ANY 1-digit, 2-digit, or 3-digit number (e.g. 'num-15', 'n-12', '25')
-      const numMatch = cardId.match(/(?:num-|n-)?(\d+)/);
+      // 1. Check if baseId represents a pure 1-digit, 2-digit, or 3-digit number (e.g. 'num-15', 'n-12', '25')
+      // CRITICAL: Must match start to end (^ and $) so it never falsely matches birds or words!
+      const numMatch = baseId.match(/^(?:num-|n-)(\d+)$/) || baseId.match(/^(\d+)$/);
       if (numMatch) {
         const val = numMatch[1];
         return (
@@ -1407,8 +1416,38 @@ export const ThreeDCardGraphic: React.FC<ThreeDCardGraphicProps> = ({ cardId, em
         );
       }
 
-      // 2. Check if it's an animal handled specifically by AnimalCharacterGraphic
-      const rawTarget = (emoji || cardId).toLowerCase();
+      // 2. Check if it's a Bird
+      const rawTarget = (emoji || baseId || cardId).toLowerCase();
+      const isBird =
+        baseId.startsWith('bird-') ||
+        rawTarget.includes('qush') ||
+        rawTarget.includes('burgut') ||
+        rawTarget.includes('tovus') ||
+        rawTarget.includes('boyqush') ||
+        rawTarget.includes('qaldirg') ||
+        rawTarget.includes('kakku') ||
+        rawTarget.includes('laylak') ||
+        rawTarget.includes('flamingo') ||
+        rawTarget.includes('parrot') ||
+        rawTarget.includes('oqqush') ||
+        rawTarget.includes('tuyaqush') ||
+        (emoji && ['🦅', '🦚', '🦉', '🐦', '🪶', '🪽', '🦩', '🦜', '🦢', '🐧', '🦆'].includes(emoji));
+
+      if (isBird) {
+        const birdEmoji = emoji || '🦅';
+        return (
+          <div className={`relative flex items-center justify-center select-none ${className}`}>
+            <div className="w-full h-full rounded-3xl bg-gradient-to-tr from-sky-400/30 via-sky-200/50 to-white/40 p-2 flex flex-col items-center justify-center shadow-inner relative overflow-hidden border-2 border-white/60">
+              <div className="absolute inset-x-2 top-1 h-1/2 bg-white/40 rounded-t-2xl pointer-events-none" />
+              <span className="text-5xl sm:text-6xl filter drop-shadow-[0_8px_14px_rgba(0,0,0,0.3)] transform hover:scale-110 transition-transform">
+                {birdEmoji}
+              </span>
+            </div>
+          </div>
+        );
+      }
+
+      // 3. Check if it's an animal handled specifically by AnimalCharacterGraphic
       const isKnownAnimalGraphic =
         rawTarget.includes('sher') || rawTarget.includes('lion') || rawTarget.includes('🦁') ||
         rawTarget.includes('ayiq') || rawTarget.includes('bear') || rawTarget.includes('🐻') ||
@@ -1424,10 +1463,10 @@ export const ThreeDCardGraphic: React.FC<ThreeDCardGraphicProps> = ({ cardId, em
         rawTarget.includes('quyon') || rawTarget.includes('rabbit') || rawTarget.includes('bunny') || rawTarget.includes('🐰');
 
       if (isKnownAnimalGraphic) {
-        return <AnimalCharacterGraphic idOrEmoji={emoji || cardId} className={className} showBackgroundDisc={false} />;
+        return <AnimalCharacterGraphic idOrEmoji={emoji || baseId} className={className} showBackgroundDisc={false} />;
       }
 
-      // 3. Render a Glossy 3D Medallion with the card's real emoji/icon
+      // 4. Render a Glossy 3D Medallion with the card's real emoji/icon
       const displayEmoji = emoji || '✨';
       return (
         <div className={`relative flex items-center justify-center select-none ${className}`}>

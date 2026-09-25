@@ -3,12 +3,33 @@ export interface PictureCard {
   name: string;
   emoji: string;
   voice: string;
-  category: 'colors' | 'animals' | 'shapes' | 'numbers' | 'fruits';
+  category: 'colors' | 'animals' | 'shapes' | 'numbers' | 'fruits' | 'birds' | 'words';
   colorBg: string;
   borderColor: string;
   cardBgHex?: string;
   cardShadowHex?: string;
   textShadowHex?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  translations?: {
+    uz: {
+      name: string;
+      voice: string;
+      description?: string;
+      examples?: Array<{ name: string; emoji: string }>;
+    };
+    ru: {
+      name: string;
+      voice: string;
+      description?: string;
+      examples?: Array<{ name: string; emoji: string }>;
+    };
+    en: {
+      name: string;
+      voice: string;
+      description?: string;
+      examples?: Array<{ name: string; emoji: string }>;
+    };
+  };
   detailItems?: Array<{
     name: string;
     emoji: string;
@@ -18,11 +39,12 @@ export interface PictureCard {
 
 export const PICTURE_CATEGORIES = [
   { id: 'all', name: 'Barchasi', emoji: '🌟', color: 'from-amber-400 to-orange-500' },
+  { id: 'shapes', name: 'Shakllar (3 tilda)', emoji: '📐', color: 'from-blue-400 to-indigo-500' },
+  { id: 'numbers', name: 'Sonlar (Cheksiz)', emoji: '🔢', color: 'from-purple-400 to-violet-500' },
   { id: 'colors', name: 'Ranglar', emoji: '🎨', color: 'from-rose-400 to-pink-500' },
-  { id: 'animals', name: 'Hayvonlar', emoji: '🐱', color: 'from-emerald-400 to-teal-500' },
-  { id: 'shapes', name: 'Shakllar', emoji: '⭕', color: 'from-blue-400 to-indigo-500' },
-  { id: 'numbers', name: 'Sonlar', emoji: '🔢', color: 'from-purple-400 to-violet-500' },
+  { id: 'birds', name: 'Qushlar', emoji: '🦅', color: 'from-sky-400 to-blue-500' },
   { id: 'fruits', name: 'Mevalar', emoji: '🍎', color: 'from-amber-400 to-yellow-500' },
+  { id: 'words', name: 'Katta so\'zlar', emoji: '📖', color: 'from-emerald-400 to-teal-500' },
 ];
 
 export const PICTURE_LESSONS: PictureCard[] = [

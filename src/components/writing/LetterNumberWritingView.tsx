@@ -23,8 +23,9 @@ import {
 import { soundFx, speakLanguage, SupportedSpeechLang } from '../../utils/audio';
 import { SyllablesReadingView } from './SyllablesReadingView';
 import { VisualMathView } from './VisualMathView';
+import { BigWordsProgressiveView } from './BigWordsProgressiveView';
 
-export type LearningStage = 'letters_numbers' | 'syllables' | 'math';
+export type LearningStage = 'letters_numbers' | 'words' | 'syllables' | 'math';
 
 interface LetterNumberWritingViewProps {
   onEarnStars: (stars: number) => void;
@@ -329,9 +330,9 @@ export const LetterNumberWritingView: React.FC<LetterNumberWritingViewProps> = (
     }
   };
 
-  // 3D Tactile Top Stage Switcher (Harf & Son, Bo'g'inlar, Qo'shish)
+  // 3D Tactile Top Stage Switcher (Harf & Son, Katta So'zlar, Bo'g'inlar, Qo'shish)
   const stageHeader = (
-    <div className="flex items-center justify-center gap-2 sm:gap-4 p-2 bg-white/95 rounded-[28px] border-2 border-indigo-200 mb-4 shadow-md max-w-xl mx-auto">
+    <div className="flex items-center justify-center gap-1.5 sm:gap-3 p-2 bg-white/95 rounded-[28px] border-2 border-indigo-200 mb-4 shadow-md max-w-2xl mx-auto">
       <button
         onClick={() => {
           soundFx.playClick();
@@ -344,7 +345,7 @@ export const LetterNumberWritingView: React.FC<LetterNumberWritingViewProps> = (
               ? '0 5px 0px #6650D9, 0 8px 12px rgba(102,80,217,0.35)'
               : 'none',
         }}
-        className={`flex-1 py-2.5 px-2 sm:px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer border-2 ${
+        className={`flex-1 py-2 px-2 sm:px-3 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer border-2 ${
           currentStage === 'letters_numbers'
             ? 'border-white/60 text-white transform -translate-y-0.5'
             : 'border-transparent text-slate-700 hover:bg-slate-100'
@@ -352,6 +353,28 @@ export const LetterNumberWritingView: React.FC<LetterNumberWritingViewProps> = (
       >
         <span className="text-base sm:text-lg">✍️</span>
         <span className="whitespace-nowrap">Harf & Son</span>
+      </button>
+
+      <button
+        onClick={() => {
+          soundFx.playClick();
+          setCurrentStage('words');
+        }}
+        style={{
+          backgroundColor: currentStage === 'words' ? '#EC4899' : 'transparent',
+          boxShadow:
+            currentStage === 'words'
+              ? '0 5px 0px #BE185D, 0 8px 12px rgba(190,24,93,0.35)'
+              : 'none',
+        }}
+        className={`flex-1 py-2 px-2 sm:px-3 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer border-2 ${
+          currentStage === 'words'
+            ? 'border-white/60 text-white transform -translate-y-0.5'
+            : 'border-transparent text-slate-700 hover:bg-slate-100'
+        }`}
+      >
+        <span className="text-base sm:text-lg">📖</span>
+        <span className="whitespace-nowrap">Katta so'zlar</span>
       </button>
 
       <button
@@ -366,13 +389,13 @@ export const LetterNumberWritingView: React.FC<LetterNumberWritingViewProps> = (
               ? '0 5px 0px #D92348, 0 8px 12px rgba(217,35,72,0.35)'
               : 'none',
         }}
-        className={`flex-1 py-2.5 px-2 sm:px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer border-2 ${
+        className={`flex-1 py-2 px-2 sm:px-3 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer border-2 ${
           currentStage === 'syllables'
             ? 'border-white/60 text-white transform -translate-y-0.5'
             : 'border-transparent text-slate-700 hover:bg-slate-100'
         }`}
       >
-        <span className="text-base sm:text-lg">📖</span>
+        <span className="text-base sm:text-lg">🔤</span>
         <span className="whitespace-nowrap">Bo'g'inlar</span>
       </button>
 
@@ -388,7 +411,7 @@ export const LetterNumberWritingView: React.FC<LetterNumberWritingViewProps> = (
               ? '0 5px 0px #1EA66D, 0 8px 12px rgba(30,166,109,0.35)'
               : 'none',
         }}
-        className={`flex-1 py-2.5 px-2 sm:px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer border-2 ${
+        className={`flex-1 py-2 px-2 sm:px-3 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer border-2 ${
           currentStage === 'math'
             ? 'border-white/60 text-white transform -translate-y-0.5'
             : 'border-transparent text-slate-700 hover:bg-slate-100'
@@ -399,6 +422,22 @@ export const LetterNumberWritingView: React.FC<LetterNumberWritingViewProps> = (
       </button>
     </div>
   );
+
+  // Render Big Words if selected (Endless & Progressive)
+  if (currentStage === 'words') {
+    return (
+      <div className="relative min-h-[calc(100vh-140px)] w-full pb-12 select-none">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-2">
+          {stageHeader}
+          <BigWordsProgressiveView
+            onEarnStars={onEarnStars}
+            onBack={onBack ? onBack : () => setCurrentStage('letters_numbers')}
+            onAwardGift={onAwardGift}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Render Syllables Reading if selected
   if (currentStage === 'syllables') {

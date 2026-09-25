@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, X, Sparkles, ArrowLeft, ArrowRight, Home, Flame, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Volume2, X, Sparkles, ArrowLeft, ArrowRight, Home, Flame, Award, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { PictureCard } from '../data/lessonsData';
 import { ThreeDCardGraphic } from './lessons/ThreeDCardGraphic';
-import { soundFx, speakUzbek } from '../utils/audio';
+import { soundFx, speakUzbek, speakLanguage } from '../utils/audio';
 import {
   getProgressiveSet,
   PROGRESSIVE_CATEGORIES,
@@ -17,6 +17,9 @@ interface LessonViewerProps {
   onBack?: () => void;
 }
 
+const STORAGE_STUDIED_KEY = 'nafas_studied_cards_v2';
+const STORAGE_SET_INDEX_PREFIX = 'nafas_set_index_v2_';
+
 export const LessonViewer: React.FC<LessonViewerProps> = ({
   onEarnStars,
   onTaskProgress,
@@ -24,10 +27,44 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
   onBack,
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [currentSetIndex, setCurrentSetIndex] = useState<number>(0);
   const [selectedCard, setSelectedCard] = useState<PictureCard | null>(null);
+  const [modalLang, setModalLang] = useState<'uz' | 'ru' | 'en'>('uz');
   const [viewCount, setViewCount] = useState<number>(0);
-  const [studiedCardIds, setStudiedCardIds] = useState<Set<string>>(new Set());
+
+  // Persistent studied cards across days
+  const [studiedCardIds, setStudiedCardIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_STUDIED_KEY);
+      if (raw) return new Set(JSON.parse(raw));
+    } catch {}
+    return new Set();
+  });
+
+  // Persistent set index for the active category
+  const [currentSetIndex, setCurrentSetIndex] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem(`${STORAGE_SET_INDEX_PREFIX}all`);
+      if (raw) {
+        const val = JSON.parse(raw);
+        if (typeof val === 'number') return val;
+      }
+    } catch {}
+    return 0;
+  });
+
+  // Sync studied cards to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_STUDIED_KEY, JSON.stringify(Array.from(studiedCardIds)));
+    } catch {}
+  }, [studiedCardIds]);
+
+  // Sync set index for active category to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_SET_INDEX_PREFIX}${activeCategory}`, JSON.stringify(currentSetIndex));
+    } catch {}
+  }, [currentSetIndex, activeCategory]);
 
   // Retrieve current progressive set dynamically (infinite!)
   const currentSet: ProgressiveSet = getProgressiveSet(currentSetIndex, activeCategory);
@@ -37,13 +74,26 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
   const handleCategoryChange = (catId: string, catName: string) => {
     soundFx.playClick();
     setActiveCategory(catId);
-    setCurrentSetIndex(0); // restart at set 0 for the selected theme
+    // Restore saved set index for this category if existing, otherwise 0
+    try {
+      const saved = localStorage.getItem(`${STORAGE_SET_INDEX_PREFIX}${catId}`);
+      if (saved) {
+        const val = JSON.parse(saved);
+        if (typeof val === 'number') {
+          setCurrentSetIndex(val);
+          speakUzbek(catName);
+          return;
+        }
+      }
+    } catch {}
+    setCurrentSetIndex(0);
     speakUzbek(catName);
   };
 
   // Card click with animation & voice
   const handleCardClick = (card: PictureCard) => {
     soundFx.playSuccess();
+    setModalLang('uz');
     speakUzbek(card.voice);
     setSelectedCard(card);
     onEarnStars(1);
@@ -320,13 +370,22 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
 
                 {/* Card Title with Thick Tactile Outline / Text Shadow */}
                 <h3
-                  className="text-white font-black text-base sm:text-xl md:text-2xl tracking-tight text-center leading-tight mb-2 select-none"
+                  className="text-white font-black text-base sm:text-xl md:text-2xl tracking-tight text-center leading-tight mb-1 select-none"
                   style={{
                     textShadow: `0 2px 0 ${textOutline}, 0 3px 0 ${textOutline}, 0 4px 6px rgba(0,0,0,0.35)`,
                   }}
                 >
                   {card.name}
                 </h3>
+
+                {/* Multilingual Subtitle Badge for Shapes */}
+                {card.translations && (
+                  <div className="flex items-center justify-center gap-1.5 flex-wrap mb-2 text-[10px] sm:text-xs font-bold text-white/95 bg-black/20 px-2.5 py-0.5 rounded-full border border-white/30 backdrop-blur-xs">
+                    <span>🇷🇺 {card.translations.ru.name}</span>
+                    <span className="opacity-60">•</span>
+                    <span>🇬🇧 {card.translations.en.name}</span>
+                  </div>
+                )}
 
                 {/* Bottom Pill Button: "🔊 Eshitish" */}
                 <div className="w-auto px-4 sm:px-6 py-1 sm:py-1.5 rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.18)] flex items-center justify-center gap-1.5 text-slate-800 font-black text-xs sm:text-sm group-hover:bg-amber-50 group-active:scale-95 transition-all">
@@ -377,105 +436,166 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({
       </div>
 
       {/* Big Interactive Card Popup Modal with Full Audio & Details */}
-      {selectedCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div
-            style={{
-              backgroundColor: selectedCard.cardBgHex || '#FFFFFF',
-              boxShadow: `0 14px 0px ${selectedCard.cardShadowHex || '#E2E8F0'}, 0 25px 50px rgba(0,0,0,0.35)`,
-            }}
-            className="rounded-[36px] p-6 sm:p-8 max-w-lg w-full border-4 border-white shadow-2xl relative text-center text-white"
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setSelectedCard(null)}
-              className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-slate-800 font-black flex items-center justify-center shadow-md transition-transform active:scale-90 cursor-pointer z-10"
-              title="Yopish va qaytish"
-            >
-              <X className="w-6 h-6" />
-            </button>
+      {selectedCard && (() => {
+        const trans = selectedCard.translations?.[modalLang];
+        const activeName = trans?.name || selectedCard.name;
+        const activeVoice = trans?.voice || selectedCard.voice;
+        const activeDesc = trans?.description;
+        const activeExamples = trans?.examples || selectedCard.detailItems;
 
-            {/* Modal Card Index Counter */}
-            <div className="absolute top-4 left-4 bg-black/20 text-white font-black text-xs px-3 py-1 rounded-full border border-white/40">
-              {currentModalIndex + 1} / {cards.length}
-            </div>
-
-            {/* Big 3D Graphic Display */}
-            <div className="my-3 flex items-center justify-center animate-gentle-wiggle">
-              <div className="p-3 sm:p-4 rounded-full bg-white/25 backdrop-blur-xs shadow-inner flex items-center justify-center">
-                <ThreeDCardGraphic
-                  cardId={selectedCard.id}
-                  emoji={selectedCard.emoji}
-                  className="w-36 h-36 sm:w-44 sm:h-44 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.3)]"
-                />
-              </div>
-            </div>
-
-            <h2
-              className="text-3xl sm:text-4xl font-black text-white mt-2"
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+            <div
               style={{
-                textShadow: `0 3px 0 ${selectedCard.textShadowHex || '#000'}, 0 5px 8px rgba(0,0,0,0.4)`,
+                backgroundColor: selectedCard.cardBgHex || '#FFFFFF',
+                boxShadow: `0 14px 0px ${selectedCard.cardShadowHex || '#E2E8F0'}, 0 25px 50px rgba(0,0,0,0.35)`,
               }}
+              className="rounded-[36px] p-6 sm:p-8 max-w-lg w-full border-4 border-white shadow-2xl relative text-center text-white"
             >
-              {selectedCard.name}
-            </h2>
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedCard(null)}
+                className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-slate-800 font-black flex items-center justify-center shadow-md transition-transform active:scale-90 cursor-pointer z-10"
+                title="Yopish va qaytish"
+              >
+                <X className="w-6 h-6" />
+              </button>
 
-            {/* Subtitle / Detail Items if present */}
-            {selectedCard.detailItems && selectedCard.detailItems.length > 0 && (
-              <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
-                {selectedCard.detailItems.map((item, idx) => (
+              {/* Modal Card Index Counter */}
+              <div className="absolute top-4 left-4 bg-black/20 text-white font-black text-xs px-3 py-1 rounded-full border border-white/40">
+                {currentModalIndex + 1} / {cards.length}
+              </div>
+
+              {/* Big 3D Graphic Display */}
+              <div className="my-2 flex items-center justify-center animate-gentle-wiggle">
+                <div className="p-3 sm:p-4 rounded-full bg-white/25 backdrop-blur-xs shadow-inner flex items-center justify-center">
+                  <ThreeDCardGraphic
+                    cardId={selectedCard.id}
+                    emoji={selectedCard.emoji}
+                    className="w-36 h-36 sm:w-44 sm:h-44 filter drop-shadow-[0_12px_20px_rgba(0,0,0,0.3)]"
+                  />
+                </div>
+              </div>
+
+              {/* Trilingual Language Switcher for Shapes */}
+              {selectedCard.translations && (
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2 my-2 bg-black/25 backdrop-blur-md p-1.5 rounded-2xl border border-white/30 max-w-xs mx-auto">
                   <button
-                    key={idx}
                     onClick={() => {
                       soundFx.playClick();
-                      speakUzbek(item.voice);
+                      setModalLang('uz');
+                      speakLanguage(selectedCard.translations?.uz.voice || selectedCard.voice, 'uz');
                     }}
-                    className="bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-black px-3 py-1 rounded-xl backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer border border-white/30"
+                    className={`flex-1 py-1.5 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                      modalLang === 'uz' ? 'bg-white text-slate-900 shadow-md scale-105' : 'text-white/80 hover:text-white'
+                    }`}
                   >
-                    <span>{item.emoji}</span>
-                    <span>{item.name}</span>
+                    <span>🇺🇿</span>
+                    <span>UZ</span>
                   </button>
-                ))}
-              </div>
-            )}
+                  <button
+                    onClick={() => {
+                      soundFx.playClick();
+                      setModalLang('ru');
+                      speakLanguage(selectedCard.translations?.ru.voice || selectedCard.name, 'ru');
+                    }}
+                    className={`flex-1 py-1.5 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                      modalLang === 'ru' ? 'bg-white text-slate-900 shadow-md scale-105' : 'text-white/80 hover:text-white'
+                    }`}
+                  >
+                    <span>🇷🇺</span>
+                    <span>RU</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      soundFx.playClick();
+                      setModalLang('en');
+                      speakLanguage(selectedCard.translations?.en.voice || selectedCard.name, 'en');
+                    }}
+                    className={`flex-1 py-1.5 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                      modalLang === 'en' ? 'bg-white text-slate-900 shadow-md scale-105' : 'text-white/80 hover:text-white'
+                    }`}
+                  >
+                    <span>🇬🇧</span>
+                    <span>EN</span>
+                  </button>
+                </div>
+              )}
 
-            {/* Controls Bar: Oldingi, Qayta Eshitish, Keyingi */}
-            <div className="mt-5 flex items-center justify-center gap-2.5 sm:gap-3 flex-wrap">
-              <button
-                onClick={handleModalPrev}
-                disabled={currentModalIndex === 0}
-                className={`p-2.5 sm:px-4 sm:py-2.5 rounded-2xl font-black text-sm flex items-center gap-1.5 transition-all shadow-md ${
-                  currentModalIndex === 0
-                    ? 'bg-white/30 text-white/50 cursor-not-allowed'
-                    : 'bg-white text-slate-800 hover:bg-amber-50 active:scale-95 cursor-pointer'
-                }`}
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Oldingi</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  soundFx.playClick();
-                  speakUzbek(selectedCard.voice);
+              {/* Active Translated Title */}
+              <h2
+                className="text-2xl sm:text-3xl font-black text-white mt-1"
+                style={{
+                  textShadow: `0 3px 0 ${selectedCard.textShadowHex || '#000'}, 0 5px 8px rgba(0,0,0,0.4)`,
                 }}
-                className="px-5 sm:px-6 py-2.5 rounded-2xl bg-white hover:bg-amber-50 text-slate-800 font-black text-sm sm:text-base inline-flex items-center gap-2 shadow-lg transition-transform active:scale-95 cursor-pointer"
               >
-                <Volume2 className="w-5 h-5 text-orange-500 fill-orange-500" />
-                <span>Eshitish 🔊</span>
-              </button>
+                {activeName}
+              </h2>
 
-              <button
-                onClick={handleModalNext}
-                className="p-2.5 sm:px-5 sm:py-2.5 rounded-2xl bg-white hover:bg-amber-50 text-slate-800 font-black text-sm sm:text-base flex items-center gap-1.5 transition-all shadow-lg active:scale-95 cursor-pointer animate-bounce-gentle"
-              >
-                <span>{currentModalIndex < cards.length - 1 ? 'Keyingi rasm' : "Yangi to'plam 🚀"}</span>
-                <ArrowRight className="w-4 h-4 text-emerald-600" />
-              </button>
+              {/* Description */}
+              {activeDesc && (
+                <p className="text-xs sm:text-sm text-white/90 mt-1 max-w-sm mx-auto font-medium">
+                  {activeDesc}
+                </p>
+              )}
+
+              {/* Subtitle / Real-world Examples */}
+              {activeExamples && activeExamples.length > 0 && (
+                <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
+                  {activeExamples.map((item: any, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        soundFx.playClick();
+                        speakLanguage(`${item.name}!`, modalLang);
+                      }}
+                      className="bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-black px-3 py-1 rounded-xl backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer border border-white/30"
+                    >
+                      <span>{item.emoji}</span>
+                      <span>{item.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Controls Bar: Oldingi, Qayta Eshitish, Keyingi */}
+              <div className="mt-5 flex items-center justify-center gap-2.5 sm:gap-3 flex-wrap">
+                <button
+                  onClick={handleModalPrev}
+                  disabled={currentModalIndex === 0}
+                  className={`p-2.5 sm:px-4 sm:py-2.5 rounded-2xl font-black text-sm flex items-center gap-1.5 transition-all shadow-md ${
+                    currentModalIndex === 0
+                      ? 'bg-white/30 text-white/50 cursor-not-allowed'
+                      : 'bg-white text-slate-800 hover:bg-amber-50 active:scale-95 cursor-pointer'
+                  }`}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Oldingi</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    soundFx.playClick();
+                    speakLanguage(activeVoice, modalLang);
+                  }}
+                  className="px-5 sm:px-6 py-2.5 rounded-2xl bg-white hover:bg-amber-50 text-slate-800 font-black text-sm sm:text-base inline-flex items-center gap-2 shadow-lg transition-transform active:scale-95 cursor-pointer"
+                >
+                  <Volume2 className="w-5 h-5 text-orange-500 fill-orange-500" />
+                  <span>Eshitish 🔊</span>
+                </button>
+
+                <button
+                  onClick={handleModalNext}
+                  className="p-2.5 sm:px-5 sm:py-2.5 rounded-2xl bg-white hover:bg-amber-50 text-slate-800 font-black text-sm sm:text-base flex items-center gap-1.5 transition-all shadow-lg active:scale-95 cursor-pointer animate-bounce-gentle"
+                >
+                  <span>{currentModalIndex < cards.length - 1 ? 'Keyingi' : "Yangi to'plam 🚀"}</span>
+                  <ArrowRight className="w-4 h-4 text-emerald-600" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import { PictureCard } from '../data/lessonsData';
+import { ALL_SHAPES_DATA } from '../data/shapesData';
 
 export interface ProgressiveSet {
   setIndex: number;
@@ -11,11 +12,10 @@ export interface ProgressiveSet {
 
 export const PROGRESSIVE_CATEGORIES = [
   { id: 'all', name: 'Barcha to\'plamlar', emoji: '🌟', color: 'from-amber-400 to-orange-500' },
-  { id: 'numbers', name: '2 xonali sonlar', emoji: '🔢', color: 'from-purple-400 to-violet-500' },
-  { id: 'birds', name: 'Qushlar olami', emoji: '🦅', color: 'from-sky-400 to-blue-500' },
-  { id: 'animals', name: 'Yovvoyi hayvonlar', emoji: '🦁', color: 'from-emerald-400 to-teal-500' },
+  { id: 'shapes', name: 'Shakllar (3 tilda)', emoji: '📐', color: 'from-blue-400 to-indigo-500' },
+  { id: 'numbers', name: 'Sonlar (Cheksiz)', emoji: '🔢', color: 'from-purple-400 to-violet-500' },
   { id: 'words', name: 'Katta so\'zlar', emoji: '📖', color: 'from-rose-400 to-pink-500' },
-  { id: 'shapes', name: 'Shakllar & Ranglar', emoji: '📐', color: 'from-amber-400 to-yellow-500' },
+  { id: 'birds', name: 'Qushlar saltanati', emoji: '🦅', color: 'from-sky-400 to-blue-500' },
 ];
 
 // Helper to convert any number 1..999 to Uzbek text
@@ -1639,6 +1639,240 @@ export function getProgressiveSet(setIndex: number, categoryId: string = 'all'):
     };
   }
 
+  // -------------------------------------------------------------------------
+  // SHAKLLAR (TRILINGUAL: UZ, RU, EN) - Progressive Sets (Oson -> Qiyinroq -> 3D)
+  // -------------------------------------------------------------------------
+  if (categoryId === 'shapes') {
+    const cards: PictureCard[] = [];
+    let title = '';
+    let subtitle = '';
+    let badge = '';
+
+    if (setIndex === 0) {
+      // 1-bosqich: Oson asosiy shakllar (8 ta)
+      const easyShapes = ALL_SHAPES_DATA.filter((s) => s.difficulty === 'easy');
+      title = `${levelNum}-to'plam: Asosiy Shakllar (Doira, Kvadrat, Uchburchak...)`;
+      subtitle = 'Doira, to\'rtburchak va yulduzchalarni 3 tilda (UZ, RU, EN) o\'rganing';
+      badge = `⭕ ${levelNum}-bosqich: Oson shakllar`;
+
+      for (const s of easyShapes) {
+        cards.push({
+          id: s.id,
+          name: s.translations.uz.name,
+          emoji: s.emoji,
+          voice: s.translations.uz.voice,
+          category: 'shapes',
+          difficulty: s.difficulty,
+          colorBg: 'bg-indigo-100/90 text-indigo-900',
+          borderColor: 'border-indigo-400',
+          cardBgHex: s.colorBgHex,
+          cardShadowHex: s.colorShadowHex,
+          textShadowHex: s.textOutlineHex,
+          translations: s.translations,
+          detailItems: s.translations.uz.examples.map((ex) => ({
+            name: ex.name,
+            emoji: ex.emoji,
+            voice: `${ex.name}!`,
+          })),
+        });
+      }
+    } else if (setIndex === 1) {
+      // 2-bosqich: Qiyinroq ko'pburchaklar (Beshburchak, Oltiburchak, Trapetsiya...)
+      const medShapes = ALL_SHAPES_DATA.filter((s) => s.difficulty === 'medium');
+      title = `${levelNum}-to'plam: Qiyinroq Shakllar (Beshburchak, Oltiburchak...)`;
+      subtitle = 'Beshburchak, trapetsiya, sakkizburchak va yarim doiralar';
+      badge = `📐 ${levelNum}-bosqich: Ko'pburchaklar`;
+
+      for (const s of medShapes) {
+        cards.push({
+          id: s.id,
+          name: s.translations.uz.name,
+          emoji: s.emoji,
+          voice: s.translations.uz.voice,
+          category: 'shapes',
+          difficulty: s.difficulty,
+          colorBg: 'bg-emerald-100/90 text-emerald-900',
+          borderColor: 'border-emerald-400',
+          cardBgHex: s.colorBgHex,
+          cardShadowHex: s.colorShadowHex,
+          textShadowHex: s.textOutlineHex,
+          translations: s.translations,
+          detailItems: s.translations.uz.examples.map((ex) => ({
+            name: ex.name,
+            emoji: ex.emoji,
+            voice: `${ex.name}!`,
+          })),
+        });
+      }
+    } else if (setIndex === 2) {
+      // 3-bosqich: Murakkab 3D Geometrik Hajmli Shakllar
+      const hardShapes = ALL_SHAPES_DATA.filter((s) => s.difficulty === 'hard');
+      title = `${levelNum}-to'plam: 3D Geometrik Shakllar (Kub, Piramida, Silindr...)`;
+      subtitle = 'Hajmli jismlar: Kub, piramida, konus, silindr va sfera';
+      badge = `🧊 ${levelNum}-bosqich: 3D Shakllar`;
+
+      for (const s of hardShapes) {
+        cards.push({
+          id: s.id,
+          name: s.translations.uz.name,
+          emoji: s.emoji,
+          voice: s.translations.uz.voice,
+          category: 'shapes',
+          difficulty: s.difficulty,
+          colorBg: 'bg-purple-100/90 text-purple-900',
+          borderColor: 'border-purple-400',
+          cardBgHex: s.colorBgHex,
+          cardShadowHex: s.colorShadowHex,
+          textShadowHex: s.textOutlineHex,
+          translations: s.translations,
+          detailItems: s.translations.uz.examples.map((ex) => ({
+            name: ex.name,
+            emoji: ex.emoji,
+            voice: `${ex.name}!`,
+          })),
+        });
+      }
+    } else {
+      // 4+ bosqich: Cheksiz aralash va qiyinlashib boruvchi sinov to'plamlari
+      title = `${levelNum}-to'plam: Geometriya Chempioni`;
+      subtitle = 'Barcha shakllarni 3 tilda mukammal mustahkamlash';
+      badge = `🏆 ${levelNum}-bosqich: Barcha Shakllar`;
+
+      const offset = (setIndex * 6) % ALL_SHAPES_DATA.length;
+      for (let i = 0; i < 8; i++) {
+        const s = ALL_SHAPES_DATA[(offset + i) % ALL_SHAPES_DATA.length];
+        cards.push({
+          id: s.id,
+          name: s.translations.uz.name,
+          emoji: s.emoji,
+          voice: s.translations.uz.voice,
+          category: 'shapes',
+          difficulty: s.difficulty,
+          colorBg: 'bg-amber-100/90 text-amber-900',
+          borderColor: 'border-amber-400',
+          cardBgHex: s.colorBgHex,
+          cardShadowHex: s.colorShadowHex,
+          textShadowHex: s.textOutlineHex,
+          translations: s.translations,
+          detailItems: s.translations.uz.examples.map((ex) => ({
+            name: ex.name,
+            emoji: ex.emoji,
+            voice: `${ex.name}!`,
+          })),
+        });
+      }
+    }
+
+    return {
+      setIndex,
+      title,
+      subtitle,
+      badge,
+      difficultyLevel: levelNum,
+      cards,
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // KATTA SO'ZLAR - Endless & Progressive Words (Oson -> O'rta -> Katta -> Cheksiz)
+  // -------------------------------------------------------------------------
+  if (categoryId === 'words') {
+    const WORD_LEVELS = [
+      // Level 1: 3-4 harfli so'zlar
+      {
+        title: `${levelNum}-to'plam: Boshlang'ich So'zlar (3-4 harf)`,
+        subtitle: 'Eng sodda va sevimli so\'zlar: Ona, Ota, Bola, Non...',
+        badge: `🌱 ${levelNum}-bosqich: Oson so'zlar`,
+        words: [
+          { id: 'w-ona', name: 'Ona', emoji: '👩', voice: 'Ona! O-N-A. Bizning eng mehribon onajonimiz!', letters: ['O', 'N', 'A'] },
+          { id: 'w-ota', name: 'Ota', emoji: '👨', voice: 'Ota! O-T-A. Tog\'dek suyangan otajonimiz!', letters: ['O', 'T', 'A'] },
+          { id: 'w-bola', name: 'Bola', emoji: '🧒', voice: 'Bola! B-O-L-A. Shodon va baxtli bolajon!', letters: ['B', 'O', 'L', 'A'] },
+          { id: 'w-non', name: 'Non', emoji: '🍞', voice: 'Non! N-O-N. Dasturxonimiz ko\'rki, tabarruk non!', letters: ['N', 'O', 'N'] },
+          { id: 'w-suv', name: 'Suv', emoji: '💧', voice: 'Suv! S-U-V. Hayot manbayi toza musaffo suv!', letters: ['S', 'U', 'V'] },
+          { id: 'w-gul', name: 'Gul', emoji: '🌸', voice: 'Gul! G-U-L. Xushbo\'y ifor taratuvchi go\'zal gul!', letters: ['G', 'U', 'L'] },
+          { id: 'w-koz', name: 'Ko\'z', emoji: '👀', voice: 'Ko\'z! K-O\'-Z. Dunyoni ko\'ruvchi ziyrak ko\'z!', letters: ['K', 'O\'', 'Z'] },
+          { id: 'w-qol', name: 'Qo\'l', emoji: '🖐️', voice: 'Qo\'l! Q-O\'-L. Yozadigan va chizadigan mohir qo\'llar!', letters: ['Q', 'O\'', 'L'] },
+        ],
+      },
+      // Level 2: 4-6 harfli so'zlar
+      {
+        title: `${levelNum}-to'plam: O'rta So'zlar (4-6 harf)`,
+        subtitle: 'Maktab, kitob, qalam va tabiat so\'zlari',
+        badge: `📚 ${levelNum}-bosqich: Maktab so'zlari`,
+        words: [
+          { id: 'w-maktab', name: 'Maktab', emoji: '🏫', voice: 'Maktab! M-A-K-T-A-B. Ilm va bilim maskani maktab!', letters: ['M', 'A', 'K', 'T', 'A', 'B'] },
+          { id: 'w-kitob', name: 'Kitob', emoji: '📖', voice: 'Kitob! K-I-T-O-B. Eng sodiq va qadrdon do\'stimiz!', letters: ['K', 'I', 'T', 'O', 'B'] },
+          { id: 'w-qalam', name: 'Qalam', emoji: '✏️', voice: 'Qalam! Q-A-L-A-M. Rang-barang chizadigan sehrli qalam!', letters: ['Q', 'A', 'L', 'A', 'M'] },
+          { id: 'w-daftar', name: 'Daftar', emoji: '📒', voice: 'Daftar! D-A-F-T-A-R. Harflar va raqamlar yoziladigan oppoq daftar!', letters: ['D', 'A', 'F', 'T', 'A', 'R'] },
+          { id: 'w-quyosh', name: 'Quyosh', emoji: '☀️', voice: 'Quyosh! Q-U-Y-O-S-H. Olis koinotdan nur sochuvchi oltin quyosh!', letters: ['Q', 'U', 'Y', 'O', 'S', 'H'] },
+          { id: 'w-shamol', name: 'Shamol', emoji: '💨', voice: 'Shamol! S-H-A-M-O-L. Daraxt barglarini tebratuvchi shabada!', letters: ['S', 'H', 'A', 'M', 'O', 'L'] },
+          { id: 'w-bahor', name: 'Bahor', emoji: '🌱', voice: 'Bahor! B-A-H-O-R. Gullar ochiladigan xushnavo fasl!', letters: ['B', 'A', 'H', 'O', 'R'] },
+          { id: 'w-daraxt', name: 'Daraxt', emoji: '🌳', voice: 'Daraxt! D-A-R-A-X-T. Katta yashil shoxlari bor daraxt!', letters: ['D', 'A', 'R', 'A', 'X', 'T'] },
+        ],
+      },
+      // Level 3: 6-8 harfli Katta so'zlar
+      {
+        title: `${levelNum}-to'plam: Katta va Go'zal So'zlar`,
+        subtitle: 'Kamalak, tabiat, vatanparvarlik va sayohat so\'zlari',
+        badge: `🌈 ${levelNum}-bosqich: Katta so'zlar`,
+        words: [
+          { id: 'w-kamalak', name: 'Kamalak', emoji: '🌈', voice: 'Kamalak! K-A-M-A-L-A-K. Yomg\'irdan keyin osmonda paydo bo\'luvchi 7 rangli kamalak!', letters: ['K', 'A', 'M', 'A', 'L', 'A', 'K'] },
+          { id: 'w-tabiat', name: 'Tabiat', emoji: '🏞️', voice: 'Tabiat! T-A-B-I-A-T. Tog\'lar, daryolar va o\'rmonlar olami!', letters: ['T', 'A', 'B', 'I', 'A', 'T'] },
+          { id: 'w-oqituvchi', name: 'O\'qituvchi', emoji: '👩‍🏫', voice: 'O\'qituvchi! Bizga ilm o\'rgatuvchi muallim!', letters: ['O\'', 'Q', 'I', 'T', 'U', 'V', 'C', 'H', 'I'] },
+          { id: 'w-samarqand', name: 'Samarqand', emoji: '🕌', voice: 'Samarqand! Qadimiy va ko\'hna go\'zal shahrimiz!', letters: ['S', 'A', 'M', 'A', 'R', 'Q', 'A', 'N', 'D'] },
+          { id: 'w-navroz', name: 'Navro\'z', emoji: '🌾', voice: 'Navro\'z! Bahoriy bayram, sumalaklar fasli!', letters: ['N', 'A', 'V', 'R', 'O\'', 'Z'] },
+          { id: 'w-kapalak', name: 'Kapalak', emoji: '🦋', voice: 'Kapalak! Qanotlari rang-barang nafis jonivor!', letters: ['K', 'A', 'P', 'A', 'L', 'A', 'K'] },
+          { id: 'w-yulduzlar', name: 'Yulduzlar', emoji: '✨', voice: 'Yulduzlar! Osmonda miltillovchi yorqin nurlar!', letters: ['Y', 'U', 'L', 'D', 'U', 'Z', 'L', 'A', 'R'] },
+          { id: 'w-dostlik', name: 'Do\'stlik', emoji: '🤝', voice: 'Do\'stlik! Samimiy, ahil va vafodor bo\'lish baxti!', letters: ['D', 'O\'', 'S', 'T', 'L', 'I', 'K'] },
+        ],
+      },
+      // Level 4: 8-12 harfli Katta ilmiy va ma'rifiy so'zlar
+      {
+        title: `${levelNum}-to'plam: Murakkab & Ilmiy So'zlar`,
+        subtitle: 'Koinot, texnologiya, matematika va vatanimiz',
+        badge: `🚀 ${levelNum}-bosqich: Ilmiy so'zlar`,
+        words: [
+          { id: 'w-ozbekiston', name: 'O\'zbekiston', emoji: '🇺🇿', voice: 'O\'zbekiston! Bizning tinch va obod aziz vatanimiz!', letters: ['O\'', 'Z', 'B', 'E', 'K', 'I', 'S', 'T', 'O', 'N'] },
+          { id: 'w-kosmonavt', name: 'Kosmonavt', emoji: '🧑‍🚀', voice: 'Kosmonavt! Raketada koinotga uchuvchi jasur inson!', letters: ['K', 'O', 'S', 'M', 'O', 'N', 'A', 'V', 'T'] },
+          { id: 'w-sayyoralar', name: 'Sayyoralar', emoji: '🪐', voice: 'Sayyoralar! Koinotda aylanuvchi yirik osmon jismlari!', letters: ['S', 'A', 'Y', 'Y', 'O', 'R', 'A', 'L', 'A', 'R'] },
+          { id: 'w-texnologiya', name: 'Texnologiya', emoji: '💻', voice: 'Texnologiya! Yangi ixtirolar va zamonaviy kompyuterlar!', letters: ['T', 'E', 'X', 'N', 'O', 'L', 'O', 'G', 'I', 'Y', 'A'] },
+          { id: 'w-matematika', name: 'Matematika', emoji: '🧮', voice: 'Matematika! Sonlar va hisob-kitoblar fani!', letters: ['M', 'A', 'T', 'E', 'M', 'A', 'T', 'I', 'K', 'A'] },
+          { id: 'w-dunyoqarash', name: 'Dunyoqarash', emoji: '🌍', voice: 'Dunyoqarash! Tevarak-atrofni keng tushunish va anglash!', letters: ['D', 'U', 'N', 'Y', 'O', 'Q', 'A', 'R', 'A', 'S', 'H'] },
+          { id: 'w-kutubxona', name: 'Kutubxona', emoji: '🏛️', voice: 'Kutubxona! Minglab ajoyib kitoblar jamlangan maskan!', letters: ['K', 'U', 'T', 'U', 'B', 'X', 'O', 'N', 'A'] },
+          { id: 'w-orzu-umid', name: 'Orzu-umid', emoji: '💫', voice: 'Orzu-umid! Kelajak sari dadil intilish!', letters: ['O', 'R', 'Z', 'U'] },
+        ],
+      },
+    ];
+
+    const currentLevel = WORD_LEVELS[Math.min(setIndex, WORD_LEVELS.length - 1)];
+    const cards: PictureCard[] = currentLevel.words.map((w, idx) => ({
+      id: `${w.id}-p${setIndex}`,
+      name: w.name,
+      emoji: w.emoji,
+      voice: w.voice,
+      category: 'words',
+      colorBg: 'bg-emerald-100/90 text-emerald-900',
+      borderColor: 'border-emerald-400',
+      cardBgHex: ['#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#06B6D4', '#6366F1', '#14B8A6'][idx % 8],
+      cardShadowHex: ['#059669', '#2563EB', '#7C3AED', '#DB2777', '#D97706', '#0891B2', '#4F46E5', '#0F766E'][idx % 8],
+      textShadowHex: '#064E3B',
+      detailItems: w.letters.map((l) => ({
+        name: l,
+        emoji: '🔤',
+        voice: `${l} harfi!`,
+      })),
+    }));
+
+    return {
+      setIndex,
+      title: currentLevel.title,
+      subtitle: currentLevel.subtitle,
+      badge: currentLevel.badge,
+      difficultyLevel: levelNum,
+      cards,
+    };
+  }
+
   if (categoryId === 'birds') {
     // Pure birds progression
     const allBirds = [
@@ -1667,7 +1901,7 @@ export function getProgressiveSet(setIndex: number, categoryId: string = 'all'):
         name: b.name,
         emoji: b.emoji,
         voice: b.voice,
-        category: 'animals',
+        category: 'birds',
         colorBg: 'bg-sky-100/90 text-sky-900',
         borderColor: 'border-sky-400',
         cardBgHex: '#0284C7',
